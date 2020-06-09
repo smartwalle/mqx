@@ -60,37 +60,37 @@ func (this *Queue) EnqueueMessage(m *sarama.ProducerMessage) error {
 	return err
 }
 
-func (this *Queue) AsyncEnqueue(value []byte, h func(error)) {
-	var m = &sarama.ProducerMessage{}
-	m.Topic = this.topic
-	//m.Partition =
-	//m.Key =
-	m.Value = sarama.ByteEncoder(value)
-	this.AsyncEnqueueMessage(m, h)
-}
-
-func (this *Queue) AsyncEnqueueMessage(m *sarama.ProducerMessage, h func(error)) {
-	if m == nil {
-		return
-	}
-
-	if this.closed {
-		return
-	}
-
-	this.asyncProducer.Input() <- m
-
-	select {
-	case <-this.asyncProducer.Successes():
-		if h != nil {
-			h(nil)
-		}
-	case err := <-this.asyncProducer.Errors():
-		if h != nil {
-			h(err)
-		}
-	}
-}
+//func (this *Queue) AsyncEnqueue(value []byte, h func(error)) {
+//	var m = &sarama.ProducerMessage{}
+//	m.Topic = this.topic
+//	//m.Partition =
+//	//m.Key =
+//	m.Value = sarama.ByteEncoder(value)
+//	this.AsyncEnqueueMessage(m, h)
+//}
+//
+//func (this *Queue) AsyncEnqueueMessage(m *sarama.ProducerMessage, h func(error)) {
+//	if m == nil {
+//		return
+//	}
+//
+//	if this.closed {
+//		return
+//	}
+//
+//	this.asyncProducer.Input() <- m
+//
+//	select {
+//	case <-this.asyncProducer.Successes():
+//		if h != nil {
+//			h(nil)
+//		}
+//	case err := <-this.asyncProducer.Errors():
+//		if h != nil {
+//			h(err)
+//		}
+//	}
+//}
 
 func (this *Queue) Dequeue() (mx.Message, error) {
 	this.mu.Lock()
