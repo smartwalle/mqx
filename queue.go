@@ -11,7 +11,7 @@ var (
 type Queue interface {
 	Enqueue(value []byte) error
 
-	AsyncEnqueue(value []byte) error
+	AsyncEnqueue(value []byte, h func(error))
 
 	Dequeue() (Message, error)
 
