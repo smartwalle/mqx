@@ -3,20 +3,21 @@ package kafka
 import (
 	"context"
 	"github.com/Shopify/sarama"
+	"github.com/smartwalle/mx"
 	"sync"
 )
 
 type consumer struct {
-	mu          *sync.Mutex
-	closed      bool
-	readyChan   chan bool
-	messageChan chan *Message
-	topics      []string
-	cancel      context.CancelFunc
-	consumer    sarama.ConsumerGroup
+	mu        *sync.Mutex
+	closed    bool
+	readyChan chan bool
+	topics    []string
+	cancel    context.CancelFunc
+	consumer  sarama.ConsumerGroup
+	handler   mx.Handler
 }
 
-func newConsumer(topic, group string, client sarama.Client) (*consumer, error) {
+func newConsumer(topic, group string, client sarama.Client, handler mx.Handler) (*consumer, error) {
 	consumerGroup, err := sarama.NewConsumerGroupFromClient(group, client)
 	if err != nil {
 		return nil, err
@@ -27,10 +28,10 @@ func newConsumer(topic, group string, client sarama.Client) (*consumer, error) {
 	c.mu = &sync.Mutex{}
 	c.closed = false
 	c.readyChan = make(chan bool)
-	c.messageChan = make(chan *Message, 1)
 	c.topics = []string{topic}
 	c.cancel = cancel
 	c.consumer = consumerGroup
+	c.handler = handler
 
 	go func() {
 		for {
@@ -71,9 +72,6 @@ func (this *consumer) Setup(sarama.ConsumerGroupSession) error {
 
 // Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
 func (this *consumer) Cleanup(sarama.ConsumerGroupSession) error {
-	if this.closed {
-		close(this.messageChan)
-	}
 	return nil
 }
 
@@ -86,8 +84,13 @@ func (this *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 	for cm := range claim.Messages() {
 		var m = &Message{}
 		m.m = cm
-		m.s = session
-		this.messageChan <- m
+
+		var h = this.handler
+		if h != nil {
+			if ok := this.handler(m, nil); ok {
+				session.MarkMessage(cm, "")
+			}
+		}
 	}
 	return nil
 }

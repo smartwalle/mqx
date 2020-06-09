@@ -6,8 +6,6 @@ import (
 
 type Message struct {
 	m *sarama.ConsumerMessage
-	s sarama.ConsumerGroupSession
-	q *Queue
 }
 
 func (this *Message) Value() []byte {
@@ -33,15 +31,4 @@ func (this *Message) Topic() string {
 
 func (this *Message) Message() *sarama.ConsumerMessage {
 	return this.m
-}
-
-func (this *Message) Session() sarama.ConsumerGroupSession {
-	return this.s
-}
-
-func (this *Message) Ack() error {
-	if this.s != nil && this.m != nil {
-		this.s.MarkMessage(this.m, "")
-	}
-	return nil
 }

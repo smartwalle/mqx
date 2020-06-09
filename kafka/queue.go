@@ -92,28 +92,25 @@ func (this *Queue) EnqueueMessage(m *sarama.ProducerMessage) error {
 //	}
 //}
 
-func (this *Queue) Dequeue() (mx.Message, error) {
+func (this *Queue) Dequeue(h mx.Handler) error {
 	this.mu.Lock()
+	if this.closed {
+		return mx.ErrClosedQueue
+	}
+
 	if this.consumer == nil {
-		consumer, err := newConsumer(this.topic, this.group, this.client)
+		consumer, err := newConsumer(this.topic, this.group, this.client, h)
 		if err != nil {
 			this.mu.Unlock()
-			return nil, err
+			return err
 		}
 		this.consumer = consumer
+	} else {
+		this.consumer.handler = h
 	}
 	this.mu.Unlock()
 
-	select {
-	case m, ok := <-this.consumer.messageChan:
-		if ok {
-			if m != nil {
-				m.q = this
-			}
-			return m, nil
-		}
-	}
-	return nil, mx.ErrClosedQueue
+	return nil
 }
 
 func (this *Queue) Close() error {

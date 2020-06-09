@@ -44,7 +44,7 @@ func main() {
 	//	}
 	//}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100000000000; i++ {
 		if err := q.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break

@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
+	"github.com/smartwalle/mx"
 	"github.com/smartwalle/mx/kafka"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -34,17 +36,10 @@ func main() {
 		return
 	}
 
-	go func() {
-		for {
-			var m, err = q.Dequeue()
-			if err != nil {
-				fmt.Println("Dequeue", err)
-				break
-			}
-			fmt.Println("Dequeue", string(m.Value()))
-			m.Ack()
-		}
-	}()
+	q.Dequeue(func(m mx.Message, err error) bool {
+		fmt.Println(time.Now(), string(m.Value()))
+		return true
+	})
 
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
