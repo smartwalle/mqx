@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 func main() {
@@ -22,7 +21,6 @@ func main() {
 
 	q.Dequeue(func(m mx.Message, err error) bool {
 		fmt.Println("Dequeue", string(m.Value()))
-		time.Sleep(time.Second * 2)
 		return true
 	})
 
