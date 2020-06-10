@@ -7,11 +7,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
 	var config = nsq.NewConfig()
 	config.MaxInFlight = 2
+	config.LookupdPollInterval = time.Second * 5
 	config.NSQLookupdAddrs = []string{"localhost:4161"}
 
 	var q, err = nsq.New("topic-1", "channel-1", config)
