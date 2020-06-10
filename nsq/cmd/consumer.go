@@ -11,6 +11,7 @@ import (
 
 func main() {
 	var config = nsq.NewConfig()
+	config.MaxInFlight = 2
 	config.NSQLookupdAddrs = []string{"localhost:4161"}
 
 	var q, err = nsq.New("topic-1", "channel-1", config)
