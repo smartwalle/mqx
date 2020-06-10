@@ -11,7 +11,7 @@ type consumer struct {
 	mu        *sync.Mutex
 	closed    bool
 	readyChan chan struct{}
-	StopChan  chan struct{}
+	stopChan  chan struct{}
 	topics    []string
 	cancel    context.CancelFunc
 	consumer  sarama.ConsumerGroup
@@ -29,7 +29,7 @@ func newConsumer(topic, group string, client sarama.Client, handler mx.Handler) 
 	c.mu = &sync.Mutex{}
 	c.closed = false
 	c.readyChan = make(chan struct{})
-	c.StopChan = make(chan struct{})
+	c.stopChan = make(chan struct{})
 	c.topics = []string{topic}
 	c.cancel = cancel
 	c.consumer = consumerGroup
@@ -75,7 +75,7 @@ func (this *consumer) Setup(sarama.ConsumerGroupSession) error {
 // Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
 func (this *consumer) Cleanup(sarama.ConsumerGroupSession) error {
 	if this.closed {
-		close(this.StopChan)
+		close(this.stopChan)
 	}
 	return nil
 }

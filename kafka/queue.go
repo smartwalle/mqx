@@ -120,7 +120,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 
 	if this.consumer != nil {
 		this.consumer.Close()
-		<-this.consumer.StopChan
+		<-this.consumer.stopChan
 		this.consumer = nil
 	}
 
@@ -148,7 +148,7 @@ func (this *Queue) Close() error {
 
 	if this.consumer != nil {
 		var err = this.consumer.Close()
-		<-this.consumer.StopChan
+		<-this.consumer.stopChan
 		if err != nil {
 			return err
 		}
