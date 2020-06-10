@@ -89,7 +89,7 @@ func (this *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 	for cm := range claim.Messages() {
 		var m = &Message{}
 		m.m = cm
-		if ok := this.handler(m); ok {
+		if this.handler(m) {
 			session.MarkMessage(cm, "")
 		}
 	}
