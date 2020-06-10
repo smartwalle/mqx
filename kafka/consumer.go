@@ -10,7 +10,8 @@ import (
 type consumer struct {
 	mu        *sync.Mutex
 	closed    bool
-	readyChan chan bool
+	readyChan chan struct{}
+	StopChan  chan struct{}
 	topics    []string
 	cancel    context.CancelFunc
 	consumer  sarama.ConsumerGroup
@@ -27,7 +28,8 @@ func newConsumer(topic, group string, client sarama.Client, handler mx.Handler) 
 	var c = &consumer{}
 	c.mu = &sync.Mutex{}
 	c.closed = false
-	c.readyChan = make(chan bool)
+	c.readyChan = make(chan struct{})
+	c.StopChan = make(chan struct{})
 	c.topics = []string{topic}
 	c.cancel = cancel
 	c.consumer = consumerGroup
@@ -46,7 +48,7 @@ func newConsumer(topic, group string, client sarama.Client, handler mx.Handler) 
 				return
 			}
 
-			c.readyChan = make(chan bool)
+			c.readyChan = make(chan struct{})
 		}
 	}()
 	<-c.readyChan
@@ -72,6 +74,9 @@ func (this *consumer) Setup(sarama.ConsumerGroupSession) error {
 
 // Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
 func (this *consumer) Cleanup(sarama.ConsumerGroupSession) error {
+	if this.closed {
+		close(this.StopChan)
+	}
 	return nil
 }
 
@@ -84,12 +89,8 @@ func (this *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 	for cm := range claim.Messages() {
 		var m = &Message{}
 		m.m = cm
-
-		var h = this.handler
-		if h != nil {
-			if ok := this.handler(m, nil); ok {
-				session.MarkMessage(cm, "")
-			}
+		if ok := this.handler(m, nil); ok {
+			session.MarkMessage(cm, "")
 		}
 	}
 	return nil

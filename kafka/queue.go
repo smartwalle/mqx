@@ -95,7 +95,14 @@ func (this *Queue) EnqueueMessage(m *sarama.ProducerMessage) error {
 func (this *Queue) Dequeue(h mx.Handler) error {
 	this.mu.Lock()
 	if this.closed {
+		this.mu.Unlock()
 		return mx.ErrClosedQueue
+	}
+
+	if this.consumer != nil {
+		this.consumer.Close()
+		<-this.consumer.StopChan
+		this.consumer = nil
 	}
 
 	if this.consumer == nil {
@@ -105,8 +112,6 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 			return err
 		}
 		this.consumer = consumer
-	} else {
-		this.consumer.handler = h
 	}
 	this.mu.Unlock()
 
@@ -124,6 +129,7 @@ func (this *Queue) Close() error {
 
 	if this.consumer != nil {
 		var err = this.consumer.Close()
+		<-this.consumer.StopChan
 		if err != nil {
 			return err
 		}

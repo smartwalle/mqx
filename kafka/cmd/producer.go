@@ -11,6 +11,9 @@ import (
 //
 // 调整 Topic 分区数量
 // ./bin/kafka-topics.sh --alter --zookeeper 127.0.0.1 --topic topic_name --partitions partition_count
+//
+// 删除 Topic
+// ./bin/kafka-topics.sh --delete --zookeeper 127.0.0.1 --topic topic_name
 
 func main() {
 	config := sarama.NewConfig()
