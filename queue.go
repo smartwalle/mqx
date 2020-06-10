@@ -8,7 +8,7 @@ var (
 	ErrClosedQueue = errors.New("qx: closed queue")
 )
 
-type Handler func(m Message, err error) bool
+type Handler func(m Message) bool
 
 type Queue interface {
 	Enqueue([]byte) error

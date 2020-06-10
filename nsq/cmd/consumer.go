@@ -22,7 +22,7 @@ func main() {
 		return
 	}
 
-	q.Dequeue(func(m mx.Message, err error) bool {
+	q.Dequeue(func(m mx.Message) bool {
 		fmt.Println("Dequeue", string(m.Value()))
 		return true
 	})
