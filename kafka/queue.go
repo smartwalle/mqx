@@ -6,6 +6,17 @@ import (
 	"sync"
 )
 
+type Config struct {
+	*sarama.Config
+	Addrs []string
+}
+
+func NewConfig() *Config {
+	var c = &Config{}
+	c.Config = sarama.NewConfig()
+	return c
+}
+
 type Queue struct {
 	mu            *sync.Mutex
 	closed        bool
@@ -17,7 +28,12 @@ type Queue struct {
 	consumer      *consumer
 }
 
-func New(topic, group string, client sarama.Client) (mx.Queue, error) {
+func New(topic, group string, config *Config) (mx.Queue, error) {
+	client, err := sarama.NewClient(config.Addrs, config.Config)
+	if err != nil {
+		return nil, err
+	}
+
 	producer, err := sarama.NewSyncProducerFromClient(client)
 	if err != nil {
 		return nil, err
