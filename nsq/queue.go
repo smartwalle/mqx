@@ -5,6 +5,7 @@ import (
 	"github.com/nsqio/go-nsq"
 	"github.com/smartwalle/mx"
 	"sync"
+	"time"
 )
 
 type Config struct {
@@ -16,6 +17,9 @@ type Config struct {
 func NewConfig() *Config {
 	var c = &Config{}
 	c.Config = nsq.NewConfig()
+	c.NSQAddr = "127.0.0.1:4150"
+	c.NSQLookupdAddrs = []string{"127.0.0.1:4161"}
+	c.LookupdPollInterval = time.Second * 10
 	return c
 }
 

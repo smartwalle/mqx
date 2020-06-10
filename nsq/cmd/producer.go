@@ -3,25 +3,32 @@ package main
 import (
 	"fmt"
 	"github.com/smartwalle/mx/nsq"
-	"time"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	var port = "4150"
-
 	var config = nsq.NewConfig()
-	config.NSQAddr = "localhost:" + port
-
-	var q, err = nsq.New("topic-1", "channel-1", config)
+	q, err := nsq.New("topic-1", "channel-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for i := 0; i < 10000000; i++ {
-		fmt.Println(q.Enqueue([]byte(fmt.Sprintf("hello %s - %d", port, i))))
-		time.Sleep(time.Second * 1)
+	fmt.Println("begin...")
+	for i := 0; i < 1000000; i++ {
+		if err := q.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
+			fmt.Println("Enqueue", err)
+			break
+		}
 	}
+	fmt.Println("end...")
 
-	select {}
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	select {
+	case <-sig:
+	}
+	fmt.Println("Close", q.Close())
 }

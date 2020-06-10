@@ -14,9 +14,19 @@ type Config struct {
 func NewConfig() *Config {
 	var c = &Config{}
 	c.Config = sarama.NewConfig()
+	c.Addrs = []string{"127.0.0.1:9092"}
+	c.Version = sarama.V2_1_0_0
+
+	// 等待服务器所有副本都保存成功后的响应
+	c.Producer.RequiredAcks = sarama.WaitForAll
+	// 随机的分区类型：返回一个分区器，该分区器每次选择一个随机分区
+	c.Producer.Partitioner = sarama.NewRandomPartitioner
 	// 是否等待成功和失败后的响应
 	c.Config.Producer.Return.Successes = true
 	c.Config.Producer.Return.Errors = true
+
+	c.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
+	c.Consumer.Offsets.Initial = sarama.OffsetOldest
 	return c
 }
 
