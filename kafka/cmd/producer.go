@@ -22,9 +22,6 @@ func main() {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	// 随机的分区类型：返回一个分区器，该分区器每次选择一个随机分区
 	config.Producer.Partitioner = sarama.NewRandomPartitioner
-	// 是否等待成功和失败后的响应
-	config.Producer.Return.Successes = true
-	config.Producer.Return.Errors = true
 	config.Version = sarama.V2_1_0_0
 	config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest

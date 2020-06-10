@@ -14,6 +14,9 @@ type Config struct {
 func NewConfig() *Config {
 	var c = &Config{}
 	c.Config = sarama.NewConfig()
+	// 是否等待成功和失败后的响应
+	c.Config.Producer.Return.Successes = true
+	c.Config.Producer.Return.Errors = true
 	return c
 }
 
