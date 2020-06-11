@@ -10,15 +10,15 @@ import (
 
 type Config struct {
 	*nsq.Config
-	NSQAddr         string
-	NSQLookupdAddrs []string
+	NSQAddr        string
+	NSQLookupAddrs []string
 }
 
 func NewConfig() *Config {
 	var c = &Config{}
 	c.Config = nsq.NewConfig()
 	c.NSQAddr = "127.0.0.1:4150"
-	c.NSQLookupdAddrs = []string{"127.0.0.1:4161"}
+	c.NSQLookupAddrs = []string{"127.0.0.1:4161"}
 	c.LookupdPollInterval = time.Second * 10
 	return c
 }
@@ -85,7 +85,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 		return errors.New("qx: consume message failed")
 	}))
 
-	if err := this.consumer.ConnectToNSQLookupds(this.config.NSQLookupdAddrs); err != nil {
+	if err := this.consumer.ConnectToNSQLookupds(this.config.NSQLookupAddrs); err != nil {
 		this.mu.Unlock()
 		return err
 	}
