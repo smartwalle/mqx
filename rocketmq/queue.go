@@ -23,6 +23,7 @@ type Config struct {
 	Credentials       primitive.Credentials
 	Namespace         string
 	Producer          struct {
+		Group                 string
 		Selector              producer.QueueSelector
 		SendMsgTimeout        time.Duration
 		DefaultTopicQueueNums int
@@ -61,6 +62,7 @@ func NewConfig() *Config {
 	c.InstanceName = "DEFAULT"
 	c.RetryTimes = 3
 
+	c.Producer.Group = "DEFAULT_CONSUMER"
 	c.Producer.Selector = producer.NewRoundRobinQueueSelector()
 	c.Producer.SendMsgTimeout = 3 * time.Second
 	c.Producer.DefaultTopicQueueNums = 4
@@ -88,7 +90,7 @@ type Queue struct {
 
 func New(topic, group string, config *Config) (mx.Queue, error) {
 	var opts []producer.Option
-	opts = append(opts, producer.WithGroupName("hello"))
+	opts = append(opts, producer.WithGroupName(config.Producer.Group))
 	opts = append(opts, producer.WithInstanceName(config.InstanceName))
 	opts = append(opts, producer.WithNameServer(config.NameServerAddrs))
 	opts = append(opts, producer.WithNameServerDomain(config.NameServerDomain))

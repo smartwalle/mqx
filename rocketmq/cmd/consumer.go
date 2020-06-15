@@ -14,14 +14,15 @@ import (
 func main() {
 	var config = rocketmq.NewConfig()
 	config.Consumer.FromWhere = consumer.ConsumeFromFirstOffset
-	q, err := rocketmq.New("topic-2", "group-1", config)
+	q, err := rocketmq.New("tq1", "group-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	q.Dequeue(func(m mx.Message) bool {
-		fmt.Println("Dequeue", time.Now(), string(m.Value()))
+		var mm = m.(*rocketmq.Message)
+		fmt.Println("Dequeue", mm.Message().Queue.QueueId, time.Now(), string(mm.Value()))
 		return true
 	})
 

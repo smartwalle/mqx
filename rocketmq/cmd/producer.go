@@ -11,7 +11,7 @@ import (
 
 func main() {
 	var config = rocketmq.NewConfig()
-	q, err := rocketmq.New("topic-2", "group-1", config)
+	q, err := rocketmq.New("tq1", "group-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return

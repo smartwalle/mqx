@@ -12,3 +12,7 @@ func (this *Message) Value() []byte {
 	}
 	return nil
 }
+
+func (this *Message) Message() *nsq.Message {
+	return this.m
+}
