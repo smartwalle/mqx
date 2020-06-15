@@ -14,7 +14,8 @@ import (
 func main() {
 	var config = rocketmq.NewConfig()
 	config.Consumer.FromWhere = consumer.ConsumeFromFirstOffset
-	q, err := rocketmq.New("tq1", "group-1", config)
+	config.Consumer.ConsumeOrderly = true
+	q, err := rocketmq.New("topic-1", "group-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return

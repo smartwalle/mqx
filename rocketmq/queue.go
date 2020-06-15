@@ -45,14 +45,14 @@ type Config struct {
 		MaxReconsumeTimes             int32
 		SuspendCurrentQueueTimeMillis time.Duration
 		//ConsumeTimeout                time.Duration
-		ConsumerModel  consumer.MessageModel
-		Strategy       consumer.AllocateStrategy
-		ConsumeOrderly bool
-		FromWhere      consumer.ConsumeFromWhere
-		Interceptors   []primitive.Interceptor
-		//MaxTimeConsumeContinuously    time.Duration
-		AutoCommit            bool
-		RebalanceLockInterval time.Duration
+		ConsumerModel              consumer.MessageModel
+		Strategy                   consumer.AllocateStrategy
+		ConsumeOrderly             bool
+		FromWhere                  consumer.ConsumeFromWhere
+		Interceptors               []primitive.Interceptor
+		MaxTimeConsumeContinuously time.Duration
+		AutoCommit                 bool
+		RebalanceLockInterval      time.Duration
 	}
 }
 
@@ -69,12 +69,13 @@ func NewConfig() *Config {
 	c.Producer.CreateTopicKey = "TBW102"
 
 	c.Consumer.Strategy = consumer.AllocateByAveragely
-	//c.Consumer.MaxTimeConsumeContinuously = 60 * time.Second
+	c.Consumer.MaxTimeConsumeContinuously = 60 * time.Second
 	c.Consumer.RebalanceLockInterval = 20 * time.Second
 	c.Consumer.MaxReconsumeTimes = -1
 	c.Consumer.ConsumerModel = consumer.Clustering
 	c.Consumer.AutoCommit = true
-	c.Consumer.PullBatchSize = 1
+	//c.Consumer.PullBatchSize = 1
+	c.Consumer.ConsumeMessageBatchMaxSize = 1
 	return c
 }
 
