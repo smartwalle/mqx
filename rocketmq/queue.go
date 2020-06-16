@@ -62,7 +62,7 @@ func NewConfig() *Config {
 	c.InstanceName = "DEFAULT"
 	c.RetryTimes = 3
 
-	c.Producer.Group = "DEFAULT_CONSUMER"
+	c.Producer.Group = "DEFAULT_PRODUCER"
 	c.Producer.Selector = producer.NewRoundRobinQueueSelector()
 	c.Producer.SendMsgTimeout = 3 * time.Second
 	c.Producer.DefaultTopicQueueNums = 4
