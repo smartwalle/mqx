@@ -33,6 +33,8 @@ github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 h1:dY6ETXrvDG7
 github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/smartwalle/mx v0.0.1 h1:fzi/9500VAqUokW8GSiXL3bWGAS9+Hns6jeBRqcEA9c=
 github.com/smartwalle/mx v0.0.1/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
+github.com/smartwalle/mx v0.0.2 h1:AumcRcnuNQopStcZTCM9xj2W4s5U6awDnUFYL1zH3HE=
+github.com/smartwalle/mx v0.0.2/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c/go.mod h1:lB8K/P019DLNhemzwFU4jHLhdvlE6uDZjXFejJXr49I=
