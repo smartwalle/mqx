@@ -4,3 +4,5 @@ github.com/nsqio/go-nsq v1.0.8 h1:3L2F8tNLlwXXlp2slDUrUWSBn2O3nMh8R1/KEDFTHPk=
 github.com/nsqio/go-nsq v1.0.8/go.mod h1:vKq36oyeVXgsS5Q8YEO7WghqidAVXQlcFxzQbQTuDEY=
 github.com/smartwalle/mx v0.0.1 h1:fzi/9500VAqUokW8GSiXL3bWGAS9+Hns6jeBRqcEA9c=
 github.com/smartwalle/mx v0.0.1/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
+github.com/smartwalle/mx v0.0.2 h1:AumcRcnuNQopStcZTCM9xj2W4s5U6awDnUFYL1zH3HE=
+github.com/smartwalle/mx v0.0.2/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
