@@ -13,6 +13,13 @@ func (this *Message) Value() []byte {
 	return nil
 }
 
+func (this *Message) Topic() string {
+	if this.m != nil {
+		return this.m.Topic
+	}
+	return ""
+}
+
 func (this *Message) Message() *primitive.MessageExt {
 	return this.m
 }

@@ -15,13 +15,6 @@ func (this *Message) Value() []byte {
 	return nil
 }
 
-func (this *Message) Key() []byte {
-	if this.m != nil {
-		return this.m.Key
-	}
-	return nil
-}
-
 func (this *Message) Topic() string {
 	if this.m != nil {
 		return this.m.Topic

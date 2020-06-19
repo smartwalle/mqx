@@ -79,6 +79,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 	this.consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 		var m = &Message{}
 		m.m = message
+		m.topic = this.topic
 		if h(m) {
 			return nil
 		}
