@@ -18,7 +18,7 @@ func main() {
 	}
 
 	fmt.Println("begin...")
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
 		if err := q.Enqueue([]byte(fmt.Sprintf("hello  %s %d", time.Now(), i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break
