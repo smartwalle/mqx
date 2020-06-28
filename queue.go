@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrClosedQueue = errors.New("qx: closed queue")
+	ErrClosedQueue = errors.New("mx: closed queue")
 )
 
 type Handler func(m Message) bool
