@@ -33,7 +33,7 @@ type Queue struct {
 	consumer *nsq.Consumer
 }
 
-func New(topic, channel string, config *Config) (mx.Queue, error) {
+func New(topic, channel string, config *Config) (*Queue, error) {
 	producer, err := nsq.NewProducer(config.NSQAddr, config.Config)
 	if err != nil {
 		return nil, err

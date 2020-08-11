@@ -89,7 +89,7 @@ type Queue struct {
 	consumer rocketmq.PushConsumer
 }
 
-func New(topic, group string, config *Config) (mx.Queue, error) {
+func New(topic, group string, config *Config) (*Queue, error) {
 	var opts []producer.Option
 	opts = append(opts, producer.WithGroupName(config.Producer.Group))
 	opts = append(opts, producer.WithInstanceName(config.InstanceName))

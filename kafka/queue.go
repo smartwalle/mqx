@@ -41,7 +41,7 @@ type Queue struct {
 	consumer      *consumer
 }
 
-func New(topic, group string, config *Config) (mx.Queue, error) {
+func New(topic, group string, config *Config) (*Queue, error) {
 	client, err := sarama.NewClient(config.Addrs, config.Config)
 	if err != nil {
 		return nil, err
