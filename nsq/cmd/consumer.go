@@ -12,13 +12,13 @@ import (
 
 func main() {
 	var config = nsq.NewConfig()
-	q, err := nsq.New("topic-1", "channel-1", config)
+	q, err := nsq.New("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	q.Dequeue(func(m mx.Message) bool {
+	q.Dequeue("channel-4", func(m mx.Message) bool {
 		fmt.Println("Dequeue", time.Now(), string(m.Value()))
 		return true
 	})

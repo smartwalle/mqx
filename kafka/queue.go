@@ -34,14 +34,13 @@ type Queue struct {
 	mu            *sync.Mutex
 	closed        bool
 	topic         string
-	group         string
 	client        sarama.Client
 	producer      sarama.SyncProducer
 	asyncProducer sarama.AsyncProducer
 	consumer      *consumer
 }
 
-func New(topic, group string, config *Config) (*Queue, error) {
+func New(topic string, config *Config) (*Queue, error) {
 	client, err := sarama.NewClient(config.Addrs, config.Config)
 	if err != nil {
 		return nil, err
@@ -60,19 +59,18 @@ func New(topic, group string, config *Config) (*Queue, error) {
 	q.mu = &sync.Mutex{}
 	q.closed = false
 	q.topic = topic
-	q.group = group
 	q.client = client
 	q.producer = producer
 	q.asyncProducer = asyncProducer
 	return q, nil
 }
 
-func (this *Queue) Enqueue(value []byte) error {
+func (this *Queue) Enqueue(data []byte) error {
 	var m = &sarama.ProducerMessage{}
 	m.Topic = this.topic
 	//m.Partition =
 	//m.Key =
-	m.Value = sarama.ByteEncoder(value)
+	m.Value = sarama.ByteEncoder(data)
 	return this.EnqueueMessage(m)
 }
 
@@ -121,7 +119,7 @@ func (this *Queue) EnqueueMessage(m *sarama.ProducerMessage) error {
 //	}
 //}
 
-func (this *Queue) Dequeue(h mx.Handler) error {
+func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	if this.closed {
@@ -135,7 +133,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 	}
 
 	if this.consumer == nil {
-		consumer, err := newConsumer(this.topic, this.group, this.client, h)
+		consumer, err := newConsumer(this.topic, group, this.client, handler)
 		if err != nil {
 			return err
 		}

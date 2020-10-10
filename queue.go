@@ -11,9 +11,9 @@ var (
 type Handler func(m Message) bool
 
 type Queue interface {
-	Enqueue([]byte) error
+	Enqueue(data []byte) error
 
-	Dequeue(Handler) error
+	Dequeue(group string, handler Handler) error
 
 	Close() error
 }

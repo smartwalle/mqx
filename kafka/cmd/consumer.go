@@ -12,13 +12,13 @@ import (
 
 func main() {
 	var config = kafka.NewConfig()
-	q, err := kafka.New("topic-1", "group-1", config)
+	q, err := kafka.New("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	q.Dequeue(func(m mx.Message) bool {
+	q.Dequeue("group-3", func(m mx.Message) bool {
 		fmt.Println("Dequeue", time.Now(), string(m.Value()))
 		return true
 	})

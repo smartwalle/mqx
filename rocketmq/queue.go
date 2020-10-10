@@ -83,13 +83,12 @@ type Queue struct {
 	mu       *sync.Mutex
 	closed   bool
 	topic    string
-	group    string
 	config   *Config
 	producer rocketmq.Producer
 	consumer rocketmq.PushConsumer
 }
 
-func New(topic, group string, config *Config) (*Queue, error) {
+func New(topic string, config *Config) (*Queue, error) {
 	var opts []producer.Option
 	opts = append(opts, producer.WithGroupName(config.Producer.Group))
 	opts = append(opts, producer.WithInstanceName(config.InstanceName))
@@ -119,14 +118,13 @@ func New(topic, group string, config *Config) (*Queue, error) {
 	q.mu = &sync.Mutex{}
 	q.closed = false
 	q.topic = topic
-	q.group = group
 	q.config = config
 	q.producer = producer
 	return q, nil
 }
 
-func (this *Queue) Enqueue(value []byte) error {
-	var m = primitive.NewMessage(this.topic, value)
+func (this *Queue) Enqueue(data []byte) error {
+	var m = primitive.NewMessage(this.topic, data)
 	return this.EnqueueMessage(m)
 }
 
@@ -143,7 +141,7 @@ func (this *Queue) EnqueueMessage(m *primitive.Message) error {
 	return err
 }
 
-func (this *Queue) Dequeue(h mx.Handler) error {
+func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	if this.closed {
@@ -158,7 +156,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 
 	if this.consumer == nil {
 		var opts []consumer.Option
-		opts = append(opts, consumer.WithGroupName(this.group))
+		opts = append(opts, consumer.WithGroupName(group))
 		opts = append(opts, consumer.WithInstance(this.config.InstanceName))
 		opts = append(opts, consumer.WithNameServer(this.config.NameServerAddrs))
 		opts = append(opts, consumer.WithNameServerDomain(this.config.NameServerDomain))
@@ -190,7 +188,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 		for _, msg := range messages {
 			var m = &Message{}
 			m.m = msg
-			if h(m) {
+			if handler(m) {
 				return consumer.ConsumeSuccess, nil
 			}
 		}

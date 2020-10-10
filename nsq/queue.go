@@ -27,13 +27,12 @@ type Queue struct {
 	mu       *sync.Mutex
 	closed   bool
 	topic    string
-	channel  string
 	config   *Config
 	producer *nsq.Producer
 	consumer *nsq.Consumer
 }
 
-func New(topic, channel string, config *Config) (*Queue, error) {
+func New(topic string, config *Config) (*Queue, error) {
 	producer, err := nsq.NewProducer(config.NSQAddr, config.Config)
 	if err != nil {
 		return nil, err
@@ -43,20 +42,19 @@ func New(topic, channel string, config *Config) (*Queue, error) {
 	q.mu = &sync.Mutex{}
 	q.closed = false
 	q.topic = topic
-	q.channel = channel
 	q.config = config
 	q.producer = producer
 	return q, nil
 }
 
-func (this *Queue) Enqueue(value []byte) error {
+func (this *Queue) Enqueue(data []byte) error {
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
-	return this.producer.Publish(this.topic, value)
+	return this.producer.Publish(this.topic, data)
 }
 
-func (this *Queue) Dequeue(h mx.Handler) error {
+func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	if this.closed {
@@ -69,7 +67,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 	}
 
 	if this.consumer == nil {
-		consumer, err := nsq.NewConsumer(this.topic, this.channel, this.config.Config)
+		consumer, err := nsq.NewConsumer(this.topic, group, this.config.Config)
 		if err != nil {
 			return err
 		}
@@ -80,7 +78,7 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 		var m = &Message{}
 		m.m = message
 		m.topic = this.topic
-		if h(m) {
+		if handler(m) {
 			return nil
 		}
 		return errors.New("qx: consume message failed")

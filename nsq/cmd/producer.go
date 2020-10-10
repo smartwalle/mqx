@@ -10,7 +10,7 @@ import (
 
 func main() {
 	var config = nsq.NewConfig()
-	q, err := nsq.New("topic-1", "channel-1", config)
+	q, err := nsq.New("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
