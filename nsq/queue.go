@@ -58,6 +58,7 @@ func (this *Queue) Enqueue(value []byte) error {
 
 func (this *Queue) Dequeue(h mx.Handler) error {
 	this.mu.Lock()
+	defer this.mu.Unlock()
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
@@ -70,7 +71,6 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 	if this.consumer == nil {
 		consumer, err := nsq.NewConsumer(this.topic, this.channel, this.config.Config)
 		if err != nil {
-			this.mu.Unlock()
 			return err
 		}
 		this.consumer = consumer
@@ -87,10 +87,8 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 	}))
 
 	if err := this.consumer.ConnectToNSQLookupds(this.config.NSQLookupAddrs); err != nil {
-		this.mu.Unlock()
 		return err
 	}
-	this.mu.Unlock()
 	return nil
 }
 

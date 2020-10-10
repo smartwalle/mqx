@@ -145,6 +145,7 @@ func (this *Queue) EnqueueMessage(m *primitive.Message) error {
 
 func (this *Queue) Dequeue(h mx.Handler) error {
 	this.mu.Lock()
+	defer this.mu.Unlock()
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
@@ -180,7 +181,6 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 
 		consumer, err := rocketmq.NewPushConsumer(opts...)
 		if err != nil {
-			this.mu.Unlock()
 			return err
 		}
 		this.consumer = consumer
@@ -197,7 +197,6 @@ func (this *Queue) Dequeue(h mx.Handler) error {
 		return consumer.ConsumeRetryLater, nil
 	})
 	this.consumer.Start()
-	this.mu.Unlock()
 	return nil
 }
 
