@@ -77,14 +77,12 @@ func (this *Queue) Close() error {
 		if err := this.consumer.Close(); err != nil {
 			return err
 		}
-		this.consumer = nil
 	}
 
 	if this.producer != nil {
 		if err := this.producer.Close(); err != nil {
 			return err
 		}
-		this.producer = nil
 	}
 	return nil
 }
