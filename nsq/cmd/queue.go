@@ -12,25 +12,30 @@ import (
 
 func main() {
 	var config = nsq.NewConfig()
-	c, err := nsq.NewConsumer("topic-1", "channel-1", config)
+	q, err := nsq.NewQueue("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	c.Dequeue(func(m mx.Message) bool {
+	q.Dequeue("channel-2", func(m mx.Message) bool {
 		fmt.Println("Dequeue 1", time.Now(), string(m.Value()))
 		return true
 	})
-	c.Dequeue(func(m mx.Message) bool {
-		fmt.Println("Dequeue 2", time.Now(), string(m.Value()))
-		return true
-	})
+
+	fmt.Println("begin...")
+	for i := 0; i < 1000; i++ {
+		if err := q.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
+			fmt.Println("Enqueue", err)
+			break
+		}
+	}
+	fmt.Println("end...")
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	select {
 	case <-sig:
 	}
-	fmt.Println("Close", c.Close())
+	fmt.Println("Close", q.Close())
 }

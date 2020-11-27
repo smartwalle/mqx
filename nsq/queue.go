@@ -1,10 +1,8 @@
 package nsq
 
 import (
-	"errors"
 	"github.com/nsqio/go-nsq"
 	"github.com/smartwalle/mx"
-	"sync"
 	"time"
 )
 
@@ -24,89 +22,55 @@ func NewConfig() *Config {
 }
 
 type Queue struct {
-	mu       *sync.Mutex
-	closed   bool
-	topic    string
+	producer mx.Producer
+	consumer mx.Consumer
 	config   *Config
-	producer *nsq.Producer
-	consumer *nsq.Consumer
+	topic    string
 }
 
-func New(topic string, config *Config) (*Queue, error) {
-	producer, err := nsq.NewProducer(config.NSQAddr, config.Config)
+func NewQueue(topic string, config *Config) (*Queue, error) {
+	producer, err := NewProducer(config)
 	if err != nil {
 		return nil, err
 	}
 
 	var q = &Queue{}
-	q.mu = &sync.Mutex{}
-	q.closed = false
-	q.topic = topic
 	q.config = config
 	q.producer = producer
+	q.topic = topic
 	return q, nil
 }
 
 func (this *Queue) Enqueue(data []byte) error {
-	if this.closed {
-		return mx.ErrClosedQueue
-	}
-	return this.producer.Publish(this.topic, data)
+	return this.producer.Enqueue(this.topic, data)
+}
+
+func (this *Queue) EnqueueTopic(topic string, data []byte) error {
+	return this.producer.Enqueue(topic, data)
 }
 
 func (this *Queue) Dequeue(group string, handler mx.Handler) error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	if this.closed {
-		return mx.ErrClosedQueue
-	}
 	if this.consumer != nil {
-		this.consumer.Stop()
-		<-this.consumer.StopChan
-		this.consumer = nil
+		this.consumer.Close()
 	}
 
-	if this.consumer == nil {
-		consumer, err := nsq.NewConsumer(this.topic, group, this.config.Config)
-		if err != nil {
-			return err
-		}
-		this.consumer = consumer
-	}
-
-	this.consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-		var m = &Message{}
-		m.m = message
-		m.topic = this.topic
-		if handler(m) {
-			return nil
-		}
-		return errors.New("qx: consume message failed")
-	}))
-
-	if err := this.consumer.ConnectToNSQLookupds(this.config.NSQLookupAddrs); err != nil {
+	var err error
+	this.consumer, err = NewConsumer(this.topic, group, this.config)
+	if err != nil {
 		return err
 	}
+	this.consumer.Dequeue(handler)
+
 	return nil
 }
 
 func (this *Queue) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
-		return nil
+	if this.producer != nil {
+		this.producer.Close()
 	}
-	this.closed = true
 
 	if this.consumer != nil {
-		this.consumer.Stop()
-		<-this.consumer.StopChan
+		this.consumer.Close()
 	}
-
-	if this.producer != nil {
-		this.producer.Stop()
-	}
-
 	return nil
 }
