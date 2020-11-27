@@ -45,6 +45,7 @@ func (this *Producer) Close() error {
 
 	if this.producer != nil {
 		this.producer.Stop()
+		this.producer = nil
 	}
 
 	return nil

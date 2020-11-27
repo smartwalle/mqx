@@ -19,15 +19,15 @@ import (
 
 func main() {
 	var config = kafka.NewConfig()
-	q, err := kafka.New("topic-1", config)
+	p, err := kafka.NewProducer(config)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	fmt.Println("begin...")
-	for i := 0; i < 2; i++ {
-		if err := q.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
+	for i := 0; i < 1000; i++ {
+		if err := p.Enqueue("topic-1", []byte(fmt.Sprintf("hello %d", i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break
 		}
@@ -39,5 +39,5 @@ func main() {
 	select {
 	case <-sig:
 	}
-	fmt.Println("Close", q.Close())
+	fmt.Println("Close", p.Close())
 }

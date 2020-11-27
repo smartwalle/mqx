@@ -7,6 +7,75 @@ import (
 	"sync"
 )
 
+type Consumer struct {
+	mu       *sync.Mutex
+	closed   bool
+	topic    string
+	group    string
+	client   sarama.Client
+	consumer *consumer
+}
+
+func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
+	client, err := sarama.NewClient(config.Addrs, config.Config)
+	if err != nil {
+		return nil, err
+	}
+
+	var c = &Consumer{}
+	c.mu = &sync.Mutex{}
+	c.closed = false
+	c.topic = topic
+	c.group = group
+	c.client = client
+	return c, nil
+}
+
+func (this *Consumer) Dequeue(handler mx.Handler) error {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+	if this.closed {
+		return mx.ErrClosedQueue
+	}
+
+	if this.consumer != nil {
+		this.consumer.Close()
+		<-this.consumer.stopChan
+		this.consumer = nil
+	}
+
+	if this.consumer == nil {
+		consumer, err := newConsumer(this.topic, this.group, this.client, handler)
+		if err != nil {
+			return err
+		}
+		this.consumer = consumer
+	}
+
+	return nil
+}
+
+func (this *Consumer) Close() error {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
+	if this.closed {
+		return nil
+	}
+	this.closed = true
+
+	if this.consumer != nil {
+		var err = this.consumer.Close()
+		<-this.consumer.stopChan
+		if err != nil {
+			return err
+		}
+		this.consumer = nil
+	}
+
+	return nil
+}
+
 type consumer struct {
 	mu        *sync.Mutex
 	closed    bool

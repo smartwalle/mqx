@@ -74,6 +74,7 @@ func (this *Consumer) Close() error {
 	if this.consumer != nil {
 		this.consumer.Stop()
 		<-this.consumer.StopChan
+		this.consumer = nil
 	}
 	return nil
 }

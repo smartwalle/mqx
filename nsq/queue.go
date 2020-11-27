@@ -22,8 +22,8 @@ func NewConfig() *Config {
 }
 
 type Queue struct {
-	producer mx.Producer
-	consumer mx.Consumer
+	producer *Producer
+	consumer *Consumer
 	config   *Config
 	topic    string
 }
@@ -66,11 +66,17 @@ func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 
 func (this *Queue) Close() error {
 	if this.producer != nil {
-		this.producer.Close()
+		if err := this.producer.Close(); err != nil {
+			return err
+		}
+		this.producer = nil
 	}
 
 	if this.consumer != nil {
-		this.consumer.Close()
+		if err := this.consumer.Close(); err != nil {
+			return err
+		}
+		this.consumer = nil
 	}
 	return nil
 }
