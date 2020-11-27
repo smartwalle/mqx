@@ -35,8 +35,8 @@ func NewQueue(topic string, config *Config) (*Queue, error) {
 	}
 
 	var q = &Queue{}
-	q.config = config
 	q.producer = producer
+	q.config = config
 	q.topic = topic
 	return q, nil
 }

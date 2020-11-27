@@ -1,13 +1,10 @@
 package rocketmq
 
 import (
-	"context"
-	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
 	"github.com/smartwalle/mx"
-	"sync"
 	"time"
 )
 
@@ -80,145 +77,61 @@ func NewConfig() *Config {
 }
 
 type Queue struct {
-	mu       *sync.Mutex
-	closed   bool
-	topic    string
+	producer *Producer
+	consumer *Consumer
 	config   *Config
-	producer rocketmq.Producer
-	consumer rocketmq.PushConsumer
+	topic    string
 }
 
-func New(topic string, config *Config) (*Queue, error) {
-	var opts []producer.Option
-	opts = append(opts, producer.WithGroupName(config.Producer.Group))
-	opts = append(opts, producer.WithInstanceName(config.InstanceName))
-	opts = append(opts, producer.WithNameServer(config.NameServerAddrs))
-	opts = append(opts, producer.WithNameServerDomain(config.NameServerDomain))
-	opts = append(opts, producer.WithNamespace(config.Namespace))
-	opts = append(opts, producer.WithVIPChannel(config.VIPChannelEnabled))
-	opts = append(opts, producer.WithRetry(config.RetryTimes))
-	opts = append(opts, producer.WithCredentials(config.Credentials))
-
-	opts = append(opts, producer.WithInterceptor(config.Producer.Interceptors...))
-	opts = append(opts, producer.WithSendMsgTimeout(config.Producer.SendMsgTimeout))
-	opts = append(opts, producer.WithQueueSelector(config.Producer.Selector))
-	opts = append(opts, producer.WithDefaultTopicQueueNums(config.Producer.DefaultTopicQueueNums))
-	opts = append(opts, producer.WithCreateTopicKey(config.Producer.CreateTopicKey))
-
-	var producer, err = rocketmq.NewProducer(opts...)
+func NewQueue(topic string, config *Config) (*Queue, error) {
+	producer, err := NewProducer(config)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = producer.Start(); err != nil {
-		return nil, err
-	}
-
 	var q = &Queue{}
-	q.mu = &sync.Mutex{}
-	q.closed = false
-	q.topic = topic
-	q.config = config
 	q.producer = producer
+	q.config = config
+	q.topic = topic
 	return q, nil
 }
 
 func (this *Queue) Enqueue(data []byte) error {
-	var m = primitive.NewMessage(this.topic, data)
-	return this.EnqueueMessage(m)
+	return this.producer.Enqueue(this.topic, data)
 }
 
-func (this *Queue) EnqueueMessage(m *primitive.Message) error {
-	if m == nil {
-		return nil
-	}
-
-	if this.closed {
-		return mx.ErrClosedQueue
-	}
-
-	_, err := this.producer.SendSync(context.Background(), m)
-	return err
+func (this *Queue) EnqueueTopic(topic string, data []byte) error {
+	return this.producer.Enqueue(topic, data)
 }
 
 func (this *Queue) Dequeue(group string, handler mx.Handler) error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	if this.closed {
-		return mx.ErrClosedQueue
-	}
-
 	if this.consumer != nil {
-		this.consumer.Unsubscribe(this.topic)
-		this.consumer.Shutdown()
-		this.consumer = nil
+		this.consumer.Close()
 	}
 
-	if this.consumer == nil {
-		var opts []consumer.Option
-		opts = append(opts, consumer.WithGroupName(group))
-		opts = append(opts, consumer.WithInstance(this.config.InstanceName))
-		opts = append(opts, consumer.WithNameServer(this.config.NameServerAddrs))
-		opts = append(opts, consumer.WithNameServerDomain(this.config.NameServerDomain))
-		opts = append(opts, consumer.WithNamespace(this.config.Namespace))
-		opts = append(opts, consumer.WithVIPChannel(this.config.VIPChannelEnabled))
-		opts = append(opts, consumer.WithRetry(this.config.RetryTimes))
-		opts = append(opts, consumer.WithCredentials(this.config.Credentials))
-
-		opts = append(opts, consumer.WithConsumerModel(this.config.Consumer.ConsumerModel))
-		opts = append(opts, consumer.WithConsumeFromWhere(this.config.Consumer.FromWhere))
-		opts = append(opts, consumer.WithConsumerOrder(this.config.Consumer.ConsumeOrderly))
-		opts = append(opts, consumer.WithConsumeMessageBatchMaxSize(this.config.Consumer.ConsumeMessageBatchMaxSize))
-		opts = append(opts, consumer.WithInterceptor(this.config.Consumer.Interceptors...))
-		opts = append(opts, consumer.WithMaxReconsumeTimes(this.config.Consumer.MaxReconsumeTimes))
-		opts = append(opts, consumer.WithStrategy(this.config.Consumer.Strategy))
-		opts = append(opts, consumer.WithPullBatchSize(this.config.Consumer.PullBatchSize))
-		opts = append(opts, consumer.WithRebalanceLockInterval(this.config.Consumer.RebalanceLockInterval))
-		opts = append(opts, consumer.WithAutoCommit(this.config.Consumer.AutoCommit))
-		opts = append(opts, consumer.WithSuspendCurrentQueueTimeMillis(this.config.Consumer.SuspendCurrentQueueTimeMillis))
-
-		consumer, err := rocketmq.NewPushConsumer(opts...)
-		if err != nil {
-			return err
-		}
-		this.consumer = consumer
+	var err error
+	this.consumer, err = NewConsumer(this.topic, group, this.config)
+	if err != nil {
+		return err
 	}
+	this.consumer.Dequeue(handler)
 
-	this.consumer.Subscribe(this.topic, consumer.MessageSelector{}, func(ctx context.Context, messages ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
-		for _, msg := range messages {
-			var m = &Message{}
-			m.m = msg
-			if handler(m) {
-				return consumer.ConsumeSuccess, nil
-			}
-		}
-		return consumer.ConsumeRetryLater, nil
-	})
-	this.consumer.Start()
 	return nil
 }
 
 func (this *Queue) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
-		return nil
-	}
-	this.closed = true
-
 	if this.producer != nil {
-		if err := this.producer.Shutdown(); err != nil {
+		if err := this.producer.Close(); err != nil {
 			return err
 		}
+		this.producer = nil
 	}
 
 	if this.consumer != nil {
-		this.consumer.Unsubscribe(this.topic)
-		if err := this.consumer.Shutdown(); err != nil {
+		if err := this.consumer.Close(); err != nil {
 			return err
 		}
+		this.consumer = nil
 	}
-
 	return nil
 }

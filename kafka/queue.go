@@ -30,9 +30,9 @@ func NewConfig() *Config {
 }
 
 type Queue struct {
-	config   *Config
 	producer *Producer
 	consumer *Consumer
+	config   *Config
 	topic    string
 }
 
@@ -43,9 +43,9 @@ func NewQueue(topic string, config *Config) (*Queue, error) {
 	}
 
 	var q = &Queue{}
+	q.producer = producer
 	q.config = config
 	q.topic = topic
-	q.producer = producer
 	return q, nil
 }
 
