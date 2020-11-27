@@ -19,7 +19,11 @@ func main() {
 	}
 
 	c.Dequeue(func(m mx.Message) bool {
-		fmt.Println("Dequeue", time.Now(), string(m.Value()))
+		fmt.Println("Dequeue 1", time.Now(), string(m.Value()))
+		return true
+	})
+	c.Dequeue(func(m mx.Message) bool {
+		fmt.Println("Dequeue 2", time.Now(), string(m.Value()))
 		return true
 	})
 
