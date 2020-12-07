@@ -28,6 +28,9 @@ func NewProducer(config *Config) (*Producer, error) {
 }
 
 func (this *Producer) Enqueue(topic string, data []byte) error {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
 	if this.closed {
 		return mx.ErrClosedQueue
 	}

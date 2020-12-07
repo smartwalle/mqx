@@ -60,6 +60,9 @@ func (this *Producer) EnqueueMessage(m *primitive.Message) error {
 		return nil
 	}
 
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
 	if this.closed {
 		return mx.ErrClosedQueue
 	}

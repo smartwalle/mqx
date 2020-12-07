@@ -51,6 +51,9 @@ func (this *Producer) EnqueueMessage(m *sarama.ProducerMessage) error {
 		return nil
 	}
 
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
