@@ -47,7 +47,6 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 
 	if this.sub != nil {
 		this.sub.Unsubscribe()
-		this.sub.Drain()
 	}
 
 	sub, err := this.conn.QueueSubscribe(this.topic, this.group, func(msg *n.Msg) {
@@ -74,7 +73,6 @@ func (this *Consumer) Close() error {
 
 	if this.sub != nil {
 		this.sub.Unsubscribe()
-		this.sub.Drain()
 		this.sub = nil
 	}
 
