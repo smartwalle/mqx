@@ -114,9 +114,7 @@ func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 	if err != nil {
 		return err
 	}
-	this.consumer.Dequeue(handler)
-
-	return nil
+	return this.consumer.Dequeue(handler)
 }
 
 func (this *Queue) Close() error {

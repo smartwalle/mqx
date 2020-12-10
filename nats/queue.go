@@ -1,23 +1,18 @@
-package nsq
+package nats
 
 import (
-	"github.com/nsqio/go-nsq"
+	n "github.com/nats-io/nats.go"
 	"github.com/smartwalle/mx"
-	"time"
 )
 
 type Config struct {
-	*nsq.Config
-	NSQAddr        string
-	NSQLookupAddrs []string
+	n.Options
 }
 
 func NewConfig() *Config {
 	var c = &Config{}
-	c.Config = nsq.NewConfig()
-	c.NSQAddr = "127.0.0.1:4150"
-	c.NSQLookupAddrs = []string{"127.0.0.1:4161"}
-	c.LookupdPollInterval = time.Second * 10
+	c.Options = n.GetDefaultOptions()
+	c.Servers = []string{"127.0.0.1:4222"}
 	return c
 }
 
@@ -63,14 +58,14 @@ func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 }
 
 func (this *Queue) Close() error {
-	if this.producer != nil {
-		if err := this.producer.Close(); err != nil {
+	if this.consumer != nil {
+		if err := this.consumer.Close(); err != nil {
 			return err
 		}
 	}
 
-	if this.consumer != nil {
-		if err := this.consumer.Close(); err != nil {
+	if this.producer != nil {
+		if err := this.producer.Close(); err != nil {
 			return err
 		}
 	}
