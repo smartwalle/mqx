@@ -11,6 +11,7 @@ import (
 
 func main() {
 	var config = rocketmq.NewConfig()
+	config.NameServerAddrs = []string{"192.168.1.77:9876"}
 	p, err := rocketmq.NewProducer(config)
 	if err != nil {
 		fmt.Println(err)

@@ -12,6 +12,7 @@ import (
 
 func main() {
 	var config = kafka.NewConfig()
+	config.Addrs = []string{"192.168.1.77:9092"}
 	c, err := kafka.NewConsumer("topic-1", "group-1", config)
 	if err != nil {
 		fmt.Println(err)

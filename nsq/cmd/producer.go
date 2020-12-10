@@ -10,6 +10,8 @@ import (
 
 func main() {
 	var config = nsq.NewConfig()
+	config.NSQAddr = "192.168.1.77:4150"
+	config.NSQLookupAddrs = []string{"192.168.1.77:4161"}
 	p, err := nsq.NewProducer(config)
 	if err != nil {
 		fmt.Println(err)

@@ -13,6 +13,7 @@ import (
 
 func main() {
 	var config = rocketmq.NewConfig()
+	config.NameServerAddrs = []string{"192.168.1.77:9876"}
 	config.Consumer.FromWhere = consumer.ConsumeFromFirstOffset
 	config.Consumer.ConsumeOrderly = true
 	c, err := rocketmq.NewConsumer("topic-1", "group-1", config)
