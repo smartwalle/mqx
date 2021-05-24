@@ -12,12 +12,11 @@ import (
 type TxProducer struct {
 	mu       *sync.Mutex
 	closed   bool
-	topic    string
 	config   *Config
 	producer rocketmq.TransactionProducer
 }
 
-func NewTxProducer(topic string, listener primitive.TransactionListener, config *Config) (*TxProducer, error) {
+func NewTxProducer(listener primitive.TransactionListener, config *Config) (*TxProducer, error) {
 	var opts []producer.Option
 	opts = append(opts, producer.WithGroupName(config.Producer.Group))
 	opts = append(opts, producer.WithInstanceName(config.InstanceName))
@@ -46,14 +45,13 @@ func NewTxProducer(topic string, listener primitive.TransactionListener, config 
 	var q = &TxProducer{}
 	q.mu = &sync.Mutex{}
 	q.closed = false
-	q.topic = topic
 	q.config = config
 	q.producer = producer
 	return q, nil
 }
 
-func (this *TxProducer) Enqueue(value []byte, properties map[string]string) (*primitive.TransactionSendResult, error) {
-	var m = primitive.NewMessage(this.topic, value)
+func (this *TxProducer) Enqueue(topic string, value []byte, properties map[string]string) (*primitive.TransactionSendResult, error) {
+	var m = primitive.NewMessage(topic, value)
 	m.WithProperties(properties)
 	return this.EnqueueMessage(m)
 }
