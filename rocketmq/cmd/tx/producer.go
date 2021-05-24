@@ -34,7 +34,7 @@ func NewService() *Service {
 	s.txList = make(map[string]*Tx)
 
 	var config = rocketmq.NewConfig()
-	s.producer, _ = rocketmq.NewTxProducer("tx-queue-test", s, config)
+	s.producer, _ = rocketmq.NewTxProducer(s, config)
 	return s
 }
 
@@ -84,7 +84,7 @@ func (this *Service) CreateUser(username, password string) (userId int64, err er
 		this.txMu.Unlock()
 	}()
 
-	result, err := this.producer.Enqueue([]byte(fmt.Sprintf("username:%s, password:%s", username, password)), map[string]string{"tx-id": txId})
+	result, err := this.producer.Enqueue("tx-queue-test", []byte(fmt.Sprintf("username:%s, password:%s", username, password)), map[string]string{"tx-id": txId})
 	if err != nil {
 		return 0, err
 	}
