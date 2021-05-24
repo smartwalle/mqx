@@ -22,10 +22,10 @@ func main() {
 }
 
 type Service struct {
-	db     *DB
-	txList map[string]*Tx
-	txMu   sync.Mutex
-	queue  *rocketmq.TxQueue
+	db       *DB
+	txList   map[string]*Tx
+	txMu     sync.Mutex
+	producer *rocketmq.TxProducer
 }
 
 func NewService() *Service {
@@ -34,7 +34,7 @@ func NewService() *Service {
 	s.txList = make(map[string]*Tx)
 
 	var config = rocketmq.NewConfig()
-	s.queue, _ = rocketmq.NewTxQueue("tx-queue-test", s, config)
+	s.producer, _ = rocketmq.NewTxProducer("tx-queue-test", s, config)
 	return s
 }
 
@@ -84,7 +84,7 @@ func (this *Service) CreateUser(username, password string) (userId int64, err er
 		this.txMu.Unlock()
 	}()
 
-	result, err := this.queue.Enqueue([]byte(fmt.Sprintf("username:%s, password:%s", username, password)), map[string]string{"tx-id": txId})
+	result, err := this.producer.Enqueue([]byte(fmt.Sprintf("username:%s, password:%s", username, password)), map[string]string{"tx-id": txId})
 	if err != nil {
 		return 0, err
 	}

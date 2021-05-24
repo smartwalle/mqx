@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-type TxQueue struct {
+type TxProducer struct {
 	mu       *sync.Mutex
 	closed   bool
 	topic    string
@@ -17,7 +17,7 @@ type TxQueue struct {
 	producer rocketmq.TransactionProducer
 }
 
-func NewTxQueue(topic string, listener primitive.TransactionListener, config *Config) (*TxQueue, error) {
+func NewTxProducer(topic string, listener primitive.TransactionListener, config *Config) (*TxProducer, error) {
 	var opts []producer.Option
 	opts = append(opts, producer.WithGroupName(config.Producer.Group))
 	opts = append(opts, producer.WithInstanceName(config.InstanceName))
@@ -43,7 +43,7 @@ func NewTxQueue(topic string, listener primitive.TransactionListener, config *Co
 		return nil, err
 	}
 
-	var q = &TxQueue{}
+	var q = &TxProducer{}
 	q.mu = &sync.Mutex{}
 	q.closed = false
 	q.topic = topic
@@ -52,13 +52,13 @@ func NewTxQueue(topic string, listener primitive.TransactionListener, config *Co
 	return q, nil
 }
 
-func (this *TxQueue) Enqueue(value []byte, properties map[string]string) (*primitive.TransactionSendResult, error) {
+func (this *TxProducer) Enqueue(value []byte, properties map[string]string) (*primitive.TransactionSendResult, error) {
 	var m = primitive.NewMessage(this.topic, value)
 	m.WithProperties(properties)
 	return this.EnqueueMessage(m)
 }
 
-func (this *TxQueue) EnqueueMessage(m *primitive.Message) (*primitive.TransactionSendResult, error) {
+func (this *TxProducer) EnqueueMessage(m *primitive.Message) (*primitive.TransactionSendResult, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -70,7 +70,7 @@ func (this *TxQueue) EnqueueMessage(m *primitive.Message) (*primitive.Transactio
 	return this.producer.SendMessageInTransaction(context.Background(), m)
 }
 
-func (this *TxQueue) Close() error {
+func (this *TxProducer) Close() error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 
