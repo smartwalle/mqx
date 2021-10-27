@@ -27,6 +27,10 @@ func NewProducer(config *Config) (*Producer, error) {
 	return p, nil
 }
 
+func (this *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
+	this.producer.SetLogger(l, lv)
+}
+
 func (this *Producer) Enqueue(topic string, data []byte) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()

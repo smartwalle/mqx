@@ -14,6 +14,8 @@ type Consumer struct {
 	group    string
 	config   *Config
 	consumer *nsq.Consumer
+	logger   Logger
+	logLevel nsq.LogLevel
 }
 
 func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
@@ -24,6 +26,11 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	c.group = group
 	c.config = config
 	return c, nil
+}
+
+func (this *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
+	this.logger = l
+	this.logLevel = lv
 }
 
 func (this *Consumer) Dequeue(handler mx.Handler) error {
@@ -44,6 +51,7 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 			return err
 		}
 		this.consumer = consumer
+		this.consumer.SetLogger(this.logger, this.logLevel)
 	}
 
 	this.consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
