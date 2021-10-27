@@ -26,6 +26,8 @@ type Queue struct {
 	consumer *Consumer
 	config   *Config
 	topic    string
+	logger   Logger
+	logLevel nsq.LogLevel
 }
 
 func NewQueue(topic string, config *Config) (*Queue, error) {
@@ -39,6 +41,12 @@ func NewQueue(topic string, config *Config) (*Queue, error) {
 	q.config = config
 	q.topic = topic
 	return q, nil
+}
+
+func (this *Queue) SetLogger(l Logger, lv nsq.LogLevel) {
+	this.logger = l
+	this.logLevel = lv
+	this.producer.SetLogger(this.logger, this.logLevel)
 }
 
 func (this *Queue) Enqueue(data []byte) error {
@@ -59,6 +67,7 @@ func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 	if err != nil {
 		return err
 	}
+	this.consumer.SetLogger(this.logger, this.logLevel)
 	return this.consumer.Dequeue(handler)
 }
 
