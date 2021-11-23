@@ -4,6 +4,7 @@ import (
 	"github.com/nsqio/go-nsq"
 	"github.com/smartwalle/mx"
 	"sync"
+	"time"
 )
 
 type Producer struct {
@@ -39,6 +40,16 @@ func (this *Producer) Enqueue(topic string, data []byte) error {
 		return mx.ErrClosedQueue
 	}
 	return this.producer.Publish(topic, data)
+}
+
+func (this *Producer) DeferredEnqueue(topic string, delay time.Duration, data []byte) error {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
+	if this.closed {
+		return mx.ErrClosedQueue
+	}
+	return this.producer.DeferredPublish(topic, delay, data)
 }
 
 func (this *Producer) Close() error {
