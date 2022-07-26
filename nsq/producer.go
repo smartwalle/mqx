@@ -52,6 +52,16 @@ func (this *Producer) DeferredEnqueue(topic string, delay time.Duration, data []
 	return this.producer.DeferredPublish(topic, delay, data)
 }
 
+func (this *Producer) MultiEnqueue(topic string, data ...[]byte) error {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
+	if this.closed {
+		return mx.ErrClosedQueue
+	}
+	return this.producer.MultiPublish(topic, data)
+}
+
 func (this *Producer) Close() error {
 	this.mu.Lock()
 	defer this.mu.Unlock()

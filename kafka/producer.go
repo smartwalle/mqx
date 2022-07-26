@@ -62,6 +62,32 @@ func (this *Producer) EnqueueMessage(m *sarama.ProducerMessage) error {
 	return err
 }
 
+func (this *Producer) MultiEnqueue(topic string, data ...[]byte) error {
+	var ms = make([]*sarama.ProducerMessage, 0, len(data))
+	for _, d := range data {
+		var m = &sarama.ProducerMessage{}
+		m.Topic = topic
+		m.Value = sarama.ByteEncoder(d)
+		ms = append(ms, m)
+	}
+	return this.EnqueueMessages(ms...)
+}
+
+func (this *Producer) EnqueueMessages(m ...*sarama.ProducerMessage) error {
+	if m == nil {
+		return nil
+	}
+
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
+	if this.closed {
+		return mx.ErrClosedQueue
+	}
+
+	return this.producer.SendMessages(m)
+}
+
 func (this *Producer) Close() error {
 	this.mu.Lock()
 	defer this.mu.Unlock()

@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrClosedQueue = errors.New("mx: closed queue")
+	ErrClosedQueue = errors.New("closed queue")
 )
 
 type Handler func(m Message) bool
@@ -15,6 +15,8 @@ type Queue interface {
 
 	EnqueueTopic(topic string, data []byte) error
 
+	MultiEnqueue(topic string, data ...[]byte) error
+
 	Dequeue(group string, handler Handler) error
 
 	Close() error
@@ -22,6 +24,8 @@ type Queue interface {
 
 type Producer interface {
 	Enqueue(topic string, data []byte) error
+
+	MultiEnqueue(topic string, data ...[]byte) error
 
 	Close() error
 }

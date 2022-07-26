@@ -10,7 +10,7 @@ import (
 
 func main() {
 	var config = nats.NewConfig()
-	config.Servers = []string{"192.168.1.77:4222"}
+	config.Servers = []string{"192.168.1.99:4222"}
 	p, err := nats.NewProducer(config)
 	if err != nil {
 		fmt.Println(err)
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	fmt.Println("begin...")
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 1; i++ {
 		if err := p.Enqueue("topic-1", []byte(fmt.Sprintf("hello %d", i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break

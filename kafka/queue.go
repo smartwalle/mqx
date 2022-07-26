@@ -57,6 +57,10 @@ func (this *Queue) EnqueueTopic(topic string, data []byte) error {
 	return this.producer.Enqueue(topic, data)
 }
 
+func (this *Queue) MultiEnqueue(topic string, data ...[]byte) error {
+	return this.producer.MultiEnqueue(topic, data...)
+}
+
 func (this *Queue) Dequeue(group string, handler mx.Handler) error {
 	if this.consumer != nil {
 		this.consumer.Close()

@@ -12,7 +12,7 @@ import (
 
 func main() {
 	var config = nats.NewConfig()
-	config.Servers = []string{"192.168.1.77:4222"}
+	config.Servers = []string{"192.168.1.99:4222"}
 	c, err := nats.NewConsumer("topic-1", "channel-1", config)
 	if err != nil {
 		fmt.Println(err)

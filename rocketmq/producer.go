@@ -52,11 +52,24 @@ func NewProducer(config *Config) (*Producer, error) {
 
 func (this *Producer) Enqueue(topic string, data []byte) error {
 	var m = primitive.NewMessage(topic, data)
-	return this.EnqueueMessage(m)
+	return this.EnqueueMessages(m)
 }
 
 func (this *Producer) EnqueueMessage(m *primitive.Message) error {
-	if m == nil {
+	return this.EnqueueMessages(m)
+}
+
+func (this *Producer) MultiEnqueue(topic string, data ...[]byte) error {
+	var ms = make([]*primitive.Message, 0, len(data))
+	for _, d := range data {
+		var m = primitive.NewMessage(topic, d)
+		ms = append(ms, m)
+	}
+	return this.EnqueueMessages(ms...)
+}
+
+func (this *Producer) EnqueueMessages(m ...*primitive.Message) error {
+	if len(m) == 0 {
 		return nil
 	}
 
@@ -67,7 +80,7 @@ func (this *Producer) EnqueueMessage(m *primitive.Message) error {
 		return mx.ErrClosedQueue
 	}
 
-	_, err := this.producer.SendSync(context.Background(), m)
+	_, err := this.producer.SendSync(context.Background(), m...)
 	return err
 }
 

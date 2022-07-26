@@ -1,6 +1,7 @@
 package nats
 
 import (
+	"errors"
 	n "github.com/nats-io/nats.go"
 	"github.com/smartwalle/mx"
 )
@@ -42,6 +43,10 @@ func (this *Queue) Enqueue(data []byte) error {
 
 func (this *Queue) EnqueueTopic(topic string, data []byte) error {
 	return this.producer.Enqueue(topic, data)
+}
+
+func (this *Queue) MultiEnqueue(topic string, data ...[]byte) error {
+	return errors.New("method MultiEnqueue not implemented")
 }
 
 func (this *Queue) Dequeue(group string, handler mx.Handler) error {
