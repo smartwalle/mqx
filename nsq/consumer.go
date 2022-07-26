@@ -61,7 +61,7 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 		if handler(m) {
 			return nil
 		}
-		return errors.New("qx: consume message failed")
+		return errors.New("consume message failed")
 	}))
 
 	if err := this.consumer.ConnectToNSQLookupds(this.config.NSQLookupAddrs); err != nil {
