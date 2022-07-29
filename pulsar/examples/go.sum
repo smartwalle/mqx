@@ -318,6 +318,8 @@ github.com/sirupsen/logrus v1.6.0 h1:UBcNElsrwanuuMsnGSlYmtmgbb23qDR5dG+6X6Oo89I
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
 github.com/smartwalle/mx v0.0.4 h1:Ul7y4Pub6V+Ij8jTLwjmgSn7SRU/3MGcvrj9fE9K0i8=
 github.com/smartwalle/mx v0.0.4/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
+github.com/smartwalle/mx v0.0.5 h1:YfvHd18Zyeqw22VjYuHeUZwCkXWdaDgY0KXrDinftX0=
+github.com/smartwalle/mx v0.0.5/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/goconvey v1.6.4/go.mod h1:syvi0/a8iFYH4r/RixwvyeAJjdLS9QV7WQ/tjFTllLA=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
