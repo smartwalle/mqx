@@ -20,7 +20,7 @@ import (
 func main() {
 	var config = kafka.NewConfig()
 	config.Addrs = []string{"192.168.1.77:9092"}
-	p, err := kafka.NewProducer(config)
+	p, err := kafka.NewProducer("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -28,7 +28,7 @@ func main() {
 
 	fmt.Println("begin...")
 	for i := 0; i < 1000; i++ {
-		if err := p.Enqueue("topic-1", []byte(fmt.Sprintf("hello %d", i))); err != nil {
+		if err := p.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break
 		}

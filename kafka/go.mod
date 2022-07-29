@@ -8,7 +8,7 @@ require (
 	github.com/frankban/quicktest v1.10.2 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
-	github.com/smartwalle/mx v0.0.4
+	github.com/smartwalle/mx v0.0.5
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect

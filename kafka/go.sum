@@ -245,6 +245,8 @@ github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrf
 github.com/sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/smartwalle/mx v0.0.4 h1:Ul7y4Pub6V+Ij8jTLwjmgSn7SRU/3MGcvrj9fE9K0i8=
 github.com/smartwalle/mx v0.0.4/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
+github.com/smartwalle/mx v0.0.5 h1:YfvHd18Zyeqw22VjYuHeUZwCkXWdaDgY0KXrDinftX0=
+github.com/smartwalle/mx v0.0.5/go.mod h1:unkMjB06PbAnPxK3FWr4FiUldbHrDTrBh4/IhxG+Djc=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=

@@ -9,12 +9,13 @@ import (
 type Producer struct {
 	mu       *sync.Mutex
 	closed   bool
+	topic    string
 	client   sarama.Client
 	producer sarama.SyncProducer
 	//asyncProducer sarama.AsyncProducer
 }
 
-func NewProducer(config *Config) (*Producer, error) {
+func NewProducer(topic string, config *Config) (*Producer, error) {
 	client, err := sarama.NewClient(config.Addrs, config.Config)
 	if err != nil {
 		return nil, err
@@ -32,14 +33,15 @@ func NewProducer(config *Config) (*Producer, error) {
 	var p = &Producer{}
 	p.mu = &sync.Mutex{}
 	p.closed = false
+	p.topic = topic
 	p.client = client
 	p.producer = producer
 	return p, nil
 }
 
-func (this *Producer) Enqueue(topic string, data []byte) error {
+func (this *Producer) Enqueue(data []byte) error {
 	var m = &sarama.ProducerMessage{}
-	m.Topic = topic
+	m.Topic = this.topic
 	//m.Partition =
 	//m.Key =
 	m.Value = sarama.ByteEncoder(data)
@@ -58,15 +60,16 @@ func (this *Producer) EnqueueMessage(m *sarama.ProducerMessage) error {
 		return mx.ErrClosedQueue
 	}
 
+	m.Topic = this.topic
 	_, _, err := this.producer.SendMessage(m)
 	return err
 }
 
-func (this *Producer) MultiEnqueue(topic string, data ...[]byte) error {
+func (this *Producer) MultiEnqueue(data ...[]byte) error {
 	var ms = make([]*sarama.ProducerMessage, 0, len(data))
 	for _, d := range data {
 		var m = &sarama.ProducerMessage{}
-		m.Topic = topic
+		m.Topic = this.topic
 		m.Value = sarama.ByteEncoder(d)
 		ms = append(ms, m)
 	}
