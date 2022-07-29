@@ -31,7 +31,7 @@ type Queue struct {
 }
 
 func NewQueue(topic string, config *Config) (*Queue, error) {
-	producer, err := NewProducer(config)
+	producer, err := NewProducer(topic, config)
 	if err != nil {
 		return nil, err
 	}
@@ -50,15 +50,11 @@ func (this *Queue) SetLogger(l Logger, lv nsq.LogLevel) {
 }
 
 func (this *Queue) Enqueue(data []byte) error {
-	return this.producer.Enqueue(this.topic, data)
+	return this.producer.Enqueue(data)
 }
 
-func (this *Queue) EnqueueTopic(topic string, data []byte) error {
-	return this.producer.Enqueue(topic, data)
-}
-
-func (this *Queue) MultiEnqueue(topic string, data ...[]byte) error {
-	return this.producer.MultiEnqueue(topic, data...)
+func (this *Queue) MultiEnqueue(data ...[]byte) error {
+	return this.producer.MultiEnqueue(data...)
 }
 
 func (this *Queue) Dequeue(group string, handler mx.Handler) error {

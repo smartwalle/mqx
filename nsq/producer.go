@@ -10,11 +10,12 @@ import (
 type Producer struct {
 	mu       *sync.Mutex
 	closed   bool
+	topic    string
 	config   *Config
 	producer *nsq.Producer
 }
 
-func NewProducer(config *Config) (*Producer, error) {
+func NewProducer(topic string, config *Config) (*Producer, error) {
 	producer, err := nsq.NewProducer(config.NSQAddr, config.Config)
 	if err != nil {
 		return nil, err
@@ -23,6 +24,7 @@ func NewProducer(config *Config) (*Producer, error) {
 	var p = &Producer{}
 	p.mu = &sync.Mutex{}
 	p.closed = false
+	p.topic = topic
 	p.config = config
 	p.producer = producer
 	return p, nil
@@ -32,34 +34,34 @@ func (this *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
 	this.producer.SetLogger(l, lv)
 }
 
-func (this *Producer) Enqueue(topic string, data []byte) error {
+func (this *Producer) Enqueue(data []byte) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
-	return this.producer.Publish(topic, data)
+	return this.producer.Publish(this.topic, data)
 }
 
-func (this *Producer) DeferredEnqueue(topic string, delay time.Duration, data []byte) error {
+func (this *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
-	return this.producer.DeferredPublish(topic, delay, data)
+	return this.producer.DeferredPublish(this.topic, delay, data)
 }
 
-func (this *Producer) MultiEnqueue(topic string, data ...[]byte) error {
+func (this *Producer) MultiEnqueue(data ...[]byte) error {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
-	return this.producer.MultiPublish(topic, data)
+	return this.producer.MultiPublish(this.topic, data)
 }
 
 func (this *Producer) Close() error {
