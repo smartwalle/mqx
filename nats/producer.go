@@ -10,11 +10,12 @@ import (
 type Producer struct {
 	mu     *sync.Mutex
 	closed bool
+	topic  string
 	config *Config
 	conn   *n.Conn
 }
 
-func NewProducer(config *Config) (*Producer, error) {
+func NewProducer(topic string, config *Config) (*Producer, error) {
 	conn, err := config.Connect()
 	if err != nil {
 		return nil, err
@@ -29,14 +30,15 @@ func NewProducer(config *Config) (*Producer, error) {
 	var p = &Producer{}
 	p.mu = &sync.Mutex{}
 	p.closed = false
+	p.topic = topic
 	p.config = config
 	p.conn = conn
 	return p, nil
 }
 
-func (this *Producer) Enqueue(topic string, data []byte) error {
+func (this *Producer) Enqueue(data []byte) error {
 	var m = &n.Msg{}
-	m.Subject = topic
+	m.Subject = this.topic
 	m.Data = data
 	return this.EnqueueMessage(m)
 }
@@ -52,12 +54,13 @@ func (this *Producer) EnqueueMessage(m *n.Msg) error {
 	if this.closed {
 		return mx.ErrClosedQueue
 	}
+	m.Subject = this.topic
 
 	err := this.conn.PublishMsg(m)
 	return err
 }
 
-func (this *Producer) MultiEnqueue(topic string, data ...[]byte) error {
+func (this *Producer) MultiEnqueue(data ...[]byte) error {
 	return errors.New("method MultiEnqueue not implemented")
 }
 
