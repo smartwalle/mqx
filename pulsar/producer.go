@@ -39,7 +39,7 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 }
 
 func (this *Producer) Enqueue(data []byte) error {
-	var m = &pulsar.ProducerMessage{}
+	var m = NewProducerMessage()
 	m.Payload = data
 	return this.EnqueueMessage(m)
 }
@@ -61,7 +61,7 @@ func (this *Producer) EnqueueMessage(m *pulsar.ProducerMessage) error {
 }
 
 func (this *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
-	var m = &pulsar.ProducerMessage{}
+	var m = NewProducerMessage()
 	m.Payload = data
 	m.DeliverAfter = delay
 	return this.EnqueueMessage(m)

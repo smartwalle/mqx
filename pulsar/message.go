@@ -23,3 +23,7 @@ func (this *Message) Topic() string {
 func (this *Message) Message() pulsar.Message {
 	return this.m
 }
+
+func NewProducerMessage() *pulsar.ProducerMessage {
+	return &pulsar.ProducerMessage{}
+}
