@@ -40,10 +40,6 @@ func (this *Queue) Enqueue(data []byte) error {
 	return this.producer.Enqueue(data)
 }
 
-func (this *Queue) EnqueueTopic(data []byte) error {
-	return this.producer.Enqueue(data)
-}
-
 func (this *Queue) MultiEnqueue(data ...[]byte) error {
 	return this.producer.MultiEnqueue(data...)
 }

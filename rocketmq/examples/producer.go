@@ -12,7 +12,7 @@ import (
 func main() {
 	var config = rocketmq.NewConfig()
 	config.NameServerAddrs = []string{"192.168.1.77:9876"}
-	p, err := rocketmq.NewProducer(config)
+	p, err := rocketmq.NewProducer("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -20,7 +20,7 @@ func main() {
 
 	fmt.Println("begin...")
 	for i := 0; i < 1000; i++ {
-		if err := p.Enqueue("topic-1", []byte(fmt.Sprintf("hello  %s %d", time.Now(), i))); err != nil {
+		if err := p.Enqueue([]byte(fmt.Sprintf("hello  %s %d", time.Now(), i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break
 		}

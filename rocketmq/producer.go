@@ -12,11 +12,12 @@ import (
 type Producer struct {
 	mu       *sync.Mutex
 	closed   bool
+	topic    string
 	config   *Config
 	producer rocketmq.Producer
 }
 
-func NewProducer(config *Config) (*Producer, error) {
+func NewProducer(topic string, config *Config) (*Producer, error) {
 	var opts []producer.Option
 	opts = append(opts, producer.WithGroupName(config.Producer.Group))
 	opts = append(opts, producer.WithInstanceName(config.InstanceName))
@@ -45,24 +46,26 @@ func NewProducer(config *Config) (*Producer, error) {
 	var p = &Producer{}
 	p.mu = &sync.Mutex{}
 	p.closed = false
+	p.topic = topic
 	p.config = config
 	p.producer = producer
 	return p, nil
 }
 
-func (this *Producer) Enqueue(topic string, data []byte) error {
-	var m = primitive.NewMessage(topic, data)
+func (this *Producer) Enqueue(data []byte) error {
+	var m = primitive.NewMessage(this.topic, data)
 	return this.EnqueueMessages(m)
 }
 
 func (this *Producer) EnqueueMessage(m *primitive.Message) error {
+	m.Topic = this.topic
 	return this.EnqueueMessages(m)
 }
 
-func (this *Producer) MultiEnqueue(topic string, data ...[]byte) error {
+func (this *Producer) MultiEnqueue(data ...[]byte) error {
 	var ms = make([]*primitive.Message, 0, len(data))
 	for _, d := range data {
-		var m = primitive.NewMessage(topic, d)
+		var m = primitive.NewMessage(this.topic, d)
 		ms = append(ms, m)
 	}
 	return this.EnqueueMessages(ms...)
