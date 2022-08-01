@@ -53,6 +53,10 @@ func (this *Queue) Enqueue(data []byte) error {
 	return this.producer.Enqueue(data)
 }
 
+func (this *Queue) DeferredEnqueue(delay time.Duration, data []byte) error {
+	return this.producer.DeferredEnqueue(delay, data)
+}
+
 func (this *Queue) MultiEnqueue(data ...[]byte) error {
 	return this.producer.MultiEnqueue(data...)
 }

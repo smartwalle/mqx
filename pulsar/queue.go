@@ -3,6 +3,7 @@ package pulsar
 import (
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/smartwalle/mx"
+	"time"
 )
 
 type Config struct {
@@ -40,6 +41,10 @@ func NewQueue(topic string, config *Config) (*Queue, error) {
 
 func (this *Queue) Enqueue(data []byte) error {
 	return this.producer.Enqueue(data)
+}
+
+func (this *Queue) DeferredEnqueue(delay time.Duration, data []byte) error {
+	return this.producer.DeferredEnqueue(delay, data)
 }
 
 func (this *Queue) MultiEnqueue(data ...[]byte) error {
