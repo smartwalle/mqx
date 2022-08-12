@@ -1,7 +1,6 @@
 package nats
 
 import (
-	"errors"
 	n "github.com/nats-io/nats.go"
 	"github.com/smartwalle/mx"
 	"sync"
@@ -61,7 +60,27 @@ func (this *Producer) EnqueueMessage(m *n.Msg) error {
 }
 
 func (this *Producer) MultiEnqueue(data ...[]byte) error {
-	return errors.New("method MultiEnqueue not implemented")
+	if len(data) == 0 {
+		return nil
+	}
+
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
+	if this.closed {
+		return mx.ErrClosedQueue
+	}
+
+	for _, d := range data {
+		var m = &n.Msg{}
+		m.Subject = this.topic
+		m.Data = d
+		if err := this.conn.PublishMsg(m); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (this *Producer) Close() error {

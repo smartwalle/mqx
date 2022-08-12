@@ -55,6 +55,10 @@ func (this *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
 }
 
 func (this *Producer) MultiEnqueue(data ...[]byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
 	this.mu.Lock()
 	defer this.mu.Unlock()
 

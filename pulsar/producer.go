@@ -2,7 +2,6 @@ package pulsar
 
 import (
 	"context"
-	"errors"
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/smartwalle/mx"
 	"sync"
@@ -68,7 +67,25 @@ func (this *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
 }
 
 func (this *Producer) MultiEnqueue(data ...[]byte) error {
-	return errors.New("method MultiEnqueue not implemented")
+	if len(data) == 0 {
+		return nil
+	}
+
+	this.mu.Lock()
+	defer this.mu.Unlock()
+
+	if this.closed {
+		return mx.ErrClosedQueue
+	}
+
+	for _, d := range data {
+		var m = NewProducerMessage()
+		m.Payload = d
+		if _, err := this.producer.Send(context.Background(), m); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (this *Producer) Close() error {

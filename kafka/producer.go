@@ -66,6 +66,10 @@ func (this *Producer) EnqueueMessage(m *sarama.ProducerMessage) error {
 }
 
 func (this *Producer) MultiEnqueue(data ...[]byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
 	var ms = make([]*sarama.ProducerMessage, 0, len(data))
 	for _, d := range data {
 		var m = &sarama.ProducerMessage{}

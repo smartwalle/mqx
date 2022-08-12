@@ -63,6 +63,10 @@ func (this *Producer) EnqueueMessage(m *primitive.Message) error {
 }
 
 func (this *Producer) MultiEnqueue(data ...[]byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
 	var ms = make([]*primitive.Message, 0, len(data))
 	for _, d := range data {
 		var m = primitive.NewMessage(this.topic, d)
