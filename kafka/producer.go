@@ -3,12 +3,11 @@ package kafka
 import (
 	"github.com/Shopify/sarama"
 	"github.com/smartwalle/mx"
-	"sync"
+	"sync/atomic"
 )
 
 type Producer struct {
-	mu       *sync.Mutex
-	closed   bool
+	closed   int32
 	topic    string
 	client   sarama.Client
 	producer sarama.SyncProducer
@@ -31,8 +30,7 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	//}
 
 	var p = &Producer{}
-	p.mu = &sync.Mutex{}
-	p.closed = false
+	p.closed = 0
 	p.topic = topic
 	p.client = client
 	p.producer = producer
@@ -53,10 +51,7 @@ func (this *Producer) EnqueueMessage(m *sarama.ProducerMessage) error {
 		return nil
 	}
 
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if atomic.LoadInt32(&this.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
@@ -85,10 +80,7 @@ func (this *Producer) EnqueueMessages(m ...*sarama.ProducerMessage) error {
 		return nil
 	}
 
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if atomic.LoadInt32(&this.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
@@ -96,13 +88,9 @@ func (this *Producer) EnqueueMessages(m ...*sarama.ProducerMessage) error {
 }
 
 func (this *Producer) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
 		return nil
 	}
-	this.closed = true
 
 	if this.producer != nil {
 		if err := this.producer.Close(); err != nil {

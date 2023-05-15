@@ -5,11 +5,11 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/smartwalle/mx"
 	"sync"
+	"sync/atomic"
 )
 
 type Consumer struct {
-	mu       *sync.Mutex
-	closed   bool
+	closed   int32
 	topic    string
 	group    string
 	client   sarama.Client
@@ -23,8 +23,7 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	}
 
 	var c = &Consumer{}
-	c.mu = &sync.Mutex{}
-	c.closed = false
+	c.closed = 0
 	c.topic = topic
 	c.group = group
 	c.client = client
@@ -32,9 +31,7 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 }
 
 func (this *Consumer) Dequeue(handler mx.Handler) error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	if this.closed {
+	if atomic.LoadInt32(&this.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
@@ -56,13 +53,9 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 }
 
 func (this *Consumer) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
 		return nil
 	}
-	this.closed = true
 
 	if this.consumer != nil {
 		var err = this.consumer.Close()

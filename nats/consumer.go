@@ -3,12 +3,11 @@ package nats
 import (
 	n "github.com/nats-io/nats.go"
 	"github.com/smartwalle/mx"
-	"sync"
+	"sync/atomic"
 )
 
 type Consumer struct {
-	mu     *sync.Mutex
-	closed bool
+	closed int32
 	topic  string
 	group  string
 	config *Config
@@ -29,8 +28,7 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	}
 
 	var c = &Consumer{}
-	c.mu = &sync.Mutex{}
-	c.closed = false
+	c.closed = 0
 	c.topic = topic
 	c.group = group
 	c.config = config
@@ -39,9 +37,7 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 }
 
 func (this *Consumer) Dequeue(handler mx.Handler) error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	if this.closed {
+	if atomic.LoadInt32(&this.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
@@ -63,13 +59,9 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 }
 
 func (this *Consumer) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
 		return nil
 	}
-	this.closed = true
 
 	if this.sub != nil {
 		this.sub.Unsubscribe()

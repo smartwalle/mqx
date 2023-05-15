@@ -4,13 +4,12 @@ import (
 	"context"
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/smartwalle/mx"
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type Producer struct {
-	mu       *sync.Mutex
-	closed   bool
+	closed   int32
 	topic    string
 	config   *Config
 	client   pulsar.Client
@@ -29,8 +28,7 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	}
 
 	var p = &Producer{}
-	p.mu = &sync.Mutex{}
-	p.closed = false
+	p.closed = 0
 	p.topic = topic
 	p.config = config
 	p.producer = producer
@@ -48,10 +46,7 @@ func (this *Producer) EnqueueMessage(m *pulsar.ProducerMessage) error {
 		return nil
 	}
 
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if atomic.LoadInt32(&this.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
@@ -71,10 +66,7 @@ func (this *Producer) MultiEnqueue(data ...[]byte) error {
 		return nil
 	}
 
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if atomic.LoadInt32(&this.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
@@ -89,13 +81,9 @@ func (this *Producer) MultiEnqueue(data ...[]byte) error {
 }
 
 func (this *Producer) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
 		return nil
 	}
-	this.closed = true
 
 	if this.producer != nil {
 		this.producer.Close()

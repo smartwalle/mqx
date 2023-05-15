@@ -6,12 +6,11 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
 	"github.com/smartwalle/mx"
-	"sync"
+	"sync/atomic"
 )
 
 type TxProducer struct {
-	mu       *sync.Mutex
-	closed   bool
+	closed   int32
 	config   *Config
 	producer rocketmq.TransactionProducer
 }
@@ -43,8 +42,7 @@ func NewTxProducer(listener primitive.TransactionListener, config *Config) (*TxP
 	}
 
 	var q = &TxProducer{}
-	q.mu = &sync.Mutex{}
-	q.closed = false
+	q.closed = 0
 	q.config = config
 	q.producer = producer
 	return q, nil
@@ -61,7 +59,7 @@ func (this *TxProducer) EnqueueMessage(m *primitive.Message) (*primitive.Transac
 		return nil, nil
 	}
 
-	if this.closed {
+	if atomic.LoadInt32(&this.closed) == 1 {
 		return nil, mx.ErrClosedQueue
 	}
 
@@ -69,13 +67,9 @@ func (this *TxProducer) EnqueueMessage(m *primitive.Message) (*primitive.Transac
 }
 
 func (this *TxProducer) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
-	if this.closed {
+	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
 		return nil
 	}
-	this.closed = true
 
 	if this.producer != nil {
 		if err := this.producer.Shutdown(); err != nil {
