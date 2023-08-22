@@ -3,7 +3,7 @@ module github.com/smartwalle/mx/kafka
 go 1.13
 
 require (
-	github.com/Shopify/sarama v1.35.0
+	github.com/IBM/sarama v1.41.0
 	github.com/Shopify/toxiproxy v2.1.4+incompatible // indirect
 	github.com/frankban/quicktest v1.10.2 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
