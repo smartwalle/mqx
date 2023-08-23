@@ -14,10 +14,11 @@ type Producer struct {
 }
 
 func NewProducer(topic string, config *Config) (*Producer, error) {
+	var writer = config.Writer
 	var p = &Producer{}
 	p.closed = 0
 	p.topic = topic
-	p.writer = &config.Writer
+	p.writer = &writer
 	p.writer.Topic = ""
 	return p, nil
 }
