@@ -19,7 +19,7 @@ import (
 
 func main() {
 	var config = kafka.NewConfig()
-	config.Addrs = []string{"192.168.1.77:9092"}
+	config.Addrs = []string{"192.168.1.99:9092"}
 	p, err := kafka.NewProducer("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
