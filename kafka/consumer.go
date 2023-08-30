@@ -148,11 +148,19 @@ func (this *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
-	for cm := range claim.Messages() {
-		var m = &Message{}
-		m.m = cm
-		if this.handler(m) {
-			session.MarkMessage(cm, "")
+	for {
+		select {
+		case message, ok := <-claim.Messages():
+			if !ok {
+				return nil
+			}
+			var m = &Message{}
+			m.m = message
+			if this.handler(m) {
+				session.MarkMessage(message, "")
+			}
+		case <-session.Context().Done():
+			return nil
 		}
 	}
 	return nil
