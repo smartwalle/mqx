@@ -13,7 +13,7 @@ type AsyncProducer struct {
 	client     sarama.Client
 	producer   sarama.AsyncProducer
 	wg         sync.WaitGroup
-	Completion func(messages *sarama.ProducerMessage, err error)
+	Completion func(message *sarama.ProducerMessage, err error)
 }
 
 func NewAsyncProducer(topic string, config *Config) (*AsyncProducer, error) {
