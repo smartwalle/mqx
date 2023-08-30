@@ -11,7 +11,6 @@ type Producer struct {
 	topic    string
 	client   sarama.Client
 	producer sarama.SyncProducer
-	//asyncProducer sarama.AsyncProducer
 }
 
 func NewProducer(topic string, config *Config) (*Producer, error) {
@@ -24,10 +23,6 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	if err != nil {
 		return nil, err
 	}
-	//asyncProducer, err := sarama.NewAsyncProducerFromClient(client)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	var p = &Producer{}
 	p.closed = 0

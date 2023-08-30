@@ -7,7 +7,8 @@ import (
 
 type Config struct {
 	*sarama.Config
-	Addrs []string
+	Addrs      []string
+	Completion func(messages *sarama.ProducerMessage, err error)
 }
 
 func NewConfig() *Config {
