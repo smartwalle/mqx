@@ -42,7 +42,7 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 
 	go func() {
 		for {
-			message, err := this.reader.FetchMessage(context.Background())
+			message, err := reader.FetchMessage(context.Background())
 			if err != nil {
 				return
 			}
@@ -50,7 +50,7 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 			var m = &Message{}
 			m.m = message
 			if handler(m) {
-				this.reader.CommitMessages(context.Background(), message)
+				reader.CommitMessages(context.Background(), message)
 			}
 		}
 	}()

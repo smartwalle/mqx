@@ -54,16 +54,16 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 
 	go func() {
 		for {
-			message, err := this.consumer.Receive(context.Background())
+			message, err := consumer.Receive(context.Background())
 			if err != nil {
 				return
 			}
 			var m = &Message{}
 			m.m = message
 			if handler(m) {
-				this.consumer.Ack(message)
+				consumer.Ack(message)
 			} else {
-				this.consumer.Nack(message)
+				consumer.Nack(message)
 			}
 		}
 	}()
