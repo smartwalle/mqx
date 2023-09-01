@@ -24,8 +24,7 @@ func NewConfig() *Config {
 	// 是否等待成功和失败后的响应
 	c.Config.Producer.Return.Successes = true
 	c.Config.Producer.Return.Errors = true
-
-	c.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
+	c.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.NewBalanceStrategyRange()}
 	c.Consumer.Offsets.Initial = sarama.OffsetOldest
 	return c
 }

@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"github.com/IBM/sarama"
 	"github.com/smartwalle/mx"
 	"sync"
@@ -102,7 +103,10 @@ func newConsumer(topic, group string, client sarama.Client, handler mx.Handler) 
 			// `Consume` should be called inside an infinite loop, when a
 			// server-side rebalance happens, the consumer session will need to be
 			// recreated to get the new claims
-			if err := consumerGroup.Consume(ctx, c.topics, c); err != nil {
+			if nErr := consumerGroup.Consume(ctx, c.topics, c); nErr != nil {
+				if errors.Is(nErr, sarama.ErrClosedConsumerGroup) {
+					return
+				}
 			}
 
 			// check if context was cancelled, signaling that the consumer should stop
