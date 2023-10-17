@@ -31,40 +31,40 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	return c, nil
 }
 
-func (this *Consumer) Dequeue(handler mx.Handler) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (c *Consumer) Dequeue(handler mx.Handler) error {
+	if atomic.LoadInt32(&c.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	if this.consumer != nil {
-		this.consumer.Close()
-		<-this.consumer.stopChan
-		this.consumer = nil
+	if c.consumer != nil {
+		c.consumer.Close()
+		<-c.consumer.stopChan
+		c.consumer = nil
 	}
 
-	if this.consumer == nil {
-		consumer, err := newConsumer(this.topic, this.group, this.client, handler)
+	if c.consumer == nil {
+		consumer, err := newConsumer(c.topic, c.group, c.client, handler)
 		if err != nil {
 			return err
 		}
-		this.consumer = consumer
+		c.consumer = consumer
 	}
 
 	return nil
 }
 
-func (this *Consumer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (c *Consumer) Close() error {
+	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
 		return nil
 	}
 
-	if this.consumer != nil {
-		var err = this.consumer.Close()
-		<-this.consumer.stopChan
+	if c.consumer != nil {
+		var err = c.consumer.Close()
+		<-c.consumer.stopChan
 		if err != nil {
 			return err
 		}
-		this.consumer = nil
+		c.consumer = nil
 	}
 
 	return nil
@@ -121,33 +121,33 @@ func newConsumer(topic, group string, client sarama.Client, handler mx.Handler) 
 	return c, nil
 }
 
-func (this *consumer) Close() error {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	if this.closed {
+func (c *consumer) Close() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed {
 		return nil
 	}
-	this.closed = true
-	this.cancel()
-	return this.consumer.Close()
+	c.closed = true
+	c.cancel()
+	return c.consumer.Close()
 }
 
 // Setup is run at the beginning of a new session, before ConsumeClaim
-func (this *consumer) Setup(sarama.ConsumerGroupSession) error {
-	close(this.readyChan)
+func (c *consumer) Setup(sarama.ConsumerGroupSession) error {
+	close(c.readyChan)
 	return nil
 }
 
 // Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
-func (this *consumer) Cleanup(sarama.ConsumerGroupSession) error {
-	if this.closed {
-		close(this.stopChan)
+func (c *consumer) Cleanup(sarama.ConsumerGroupSession) error {
+	if c.closed {
+		close(c.stopChan)
 	}
 	return nil
 }
 
 // ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
-func (this *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (c *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	// NOTE:
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
@@ -160,7 +160,7 @@ func (this *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 			}
 			var m = &Message{}
 			m.m = message
-			if this.handler(m) {
+			if c.handler(m) {
 				session.MarkMessage(message, "")
 			}
 		case <-session.Context().Done():

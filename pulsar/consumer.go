@@ -25,32 +25,32 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	return c, nil
 }
 
-func (this *Consumer) Dequeue(handler mx.Handler) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (c *Consumer) Dequeue(handler mx.Handler) error {
+	if atomic.LoadInt32(&c.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	if this.consumer != nil {
-		this.consumer.Close()
-		this.consumer = nil
+	if c.consumer != nil {
+		c.consumer.Close()
+		c.consumer = nil
 	}
 
-	if this.client == nil {
-		client, err := pulsar.NewClient(this.config.ClientOptions)
+	if c.client == nil {
+		client, err := pulsar.NewClient(c.config.ClientOptions)
 		if err != nil {
 			return err
 		}
-		this.client = client
+		c.client = client
 	}
 
-	this.config.ConsumerOptions.Topic = this.topic
-	this.config.ConsumerOptions.SubscriptionName = this.group
+	c.config.ConsumerOptions.Topic = c.topic
+	c.config.ConsumerOptions.SubscriptionName = c.group
 
-	consumer, err := this.client.Subscribe(this.config.ConsumerOptions)
+	consumer, err := c.client.Subscribe(c.config.ConsumerOptions)
 	if err != nil {
 		return err
 	}
-	this.consumer = consumer
+	c.consumer = consumer
 
 	go func() {
 		for {
@@ -70,19 +70,19 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 	return nil
 }
 
-func (this *Consumer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (c *Consumer) Close() error {
+	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
 		return nil
 	}
 
-	if this.consumer != nil {
-		this.consumer.Close()
-		this.consumer = nil
+	if c.consumer != nil {
+		c.consumer.Close()
+		c.consumer = nil
 	}
 
-	if this.client != nil {
-		this.client.Close()
-		this.client = nil
+	if c.client != nil {
+		c.client.Close()
+		c.client = nil
 	}
 
 	return nil

@@ -8,20 +8,20 @@ type Message struct {
 	m *n.Msg
 }
 
-func (this *Message) Value() []byte {
-	if this.m != nil {
-		return this.m.Data
+func (m *Message) Value() []byte {
+	if m.m != nil {
+		return m.m.Data
 	}
 	return nil
 }
 
-func (this *Message) Topic() string {
-	if this.m != nil {
-		return this.m.Subject
+func (m *Message) Topic() string {
+	if m.m != nil {
+		return m.m.Subject
 	}
 	return ""
 }
 
-func (this *Message) Message() *n.Msg {
-	return this.m
+func (m *Message) Message() *n.Msg {
+	return m.m
 }

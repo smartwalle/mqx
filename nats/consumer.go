@@ -36,16 +36,16 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	return c, nil
 }
 
-func (this *Consumer) Dequeue(handler mx.Handler) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (c *Consumer) Dequeue(handler mx.Handler) error {
+	if atomic.LoadInt32(&c.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	if this.sub != nil {
-		this.sub.Unsubscribe()
+	if c.sub != nil {
+		c.sub.Unsubscribe()
 	}
 
-	sub, err := this.conn.QueueSubscribe(this.topic, this.group, func(msg *n.Msg) {
+	sub, err := c.conn.QueueSubscribe(c.topic, c.group, func(msg *n.Msg) {
 		var m = &Message{}
 		m.m = msg
 		handler(m)
@@ -53,24 +53,24 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 	if err != nil {
 		return err
 	}
-	this.sub = sub
+	c.sub = sub
 
 	return nil
 }
 
-func (this *Consumer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (c *Consumer) Close() error {
+	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
 		return nil
 	}
 
-	if this.sub != nil {
-		this.sub.Unsubscribe()
-		this.sub = nil
+	if c.sub != nil {
+		c.sub.Unsubscribe()
+		c.sub = nil
 	}
 
-	if this.conn != nil {
-		this.conn.Close()
-		this.conn = nil
+	if c.conn != nil {
+		c.conn.Close()
+		c.conn = nil
 	}
 	return nil
 }

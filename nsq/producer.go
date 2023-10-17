@@ -28,43 +28,43 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	return p, nil
 }
 
-func (this *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
-	this.producer.SetLogger(l, lv)
+func (p *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
+	p.producer.SetLogger(l, lv)
 }
 
-func (this *Producer) Enqueue(data []byte) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (p *Producer) Enqueue(data []byte) error {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
-	return this.producer.Publish(this.topic, data)
+	return p.producer.Publish(p.topic, data)
 }
 
-func (this *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (p *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
-	return this.producer.DeferredPublish(this.topic, delay, data)
+	return p.producer.DeferredPublish(p.topic, delay, data)
 }
 
-func (this *Producer) MultiEnqueue(data ...[]byte) error {
+func (p *Producer) MultiEnqueue(data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
-	return this.producer.MultiPublish(this.topic, data)
+	return p.producer.MultiPublish(p.topic, data)
 }
 
-func (this *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *Producer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.producer != nil {
-		this.producer.Stop()
-		this.producer = nil
+	if p.producer != nil {
+		p.producer.Stop()
+		p.producer = nil
 	}
 
 	return nil

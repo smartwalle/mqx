@@ -96,36 +96,36 @@ func NewQueue(topic string, config *Config) (*Queue, error) {
 	return q, nil
 }
 
-func (this *Queue) Enqueue(data []byte) error {
-	return this.producer.Enqueue(data)
+func (q *Queue) Enqueue(data []byte) error {
+	return q.producer.Enqueue(data)
 }
 
-func (this *Queue) MultiEnqueue(data ...[]byte) error {
-	return this.producer.MultiEnqueue(data...)
+func (q *Queue) MultiEnqueue(data ...[]byte) error {
+	return q.producer.MultiEnqueue(data...)
 }
 
-func (this *Queue) Dequeue(group string, handler mx.Handler) error {
-	if this.consumer != nil {
-		this.consumer.Close()
+func (q *Queue) Dequeue(group string, handler mx.Handler) error {
+	if q.consumer != nil {
+		q.consumer.Close()
 	}
 
 	var err error
-	this.consumer, err = NewConsumer(this.topic, group, this.config)
+	q.consumer, err = NewConsumer(q.topic, group, q.config)
 	if err != nil {
 		return err
 	}
-	return this.consumer.Dequeue(handler)
+	return q.consumer.Dequeue(handler)
 }
 
-func (this *Queue) Close() error {
-	if this.producer != nil {
-		if err := this.producer.Close(); err != nil {
+func (q *Queue) Close() error {
+	if q.producer != nil {
+		if err := q.producer.Close(); err != nil {
 			return err
 		}
 	}
 
-	if this.consumer != nil {
-		if err := this.consumer.Close(); err != nil {
+	if q.consumer != nil {
+		if err := q.consumer.Close(); err != nil {
 			return err
 		}
 	}

@@ -23,19 +23,19 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	return p, nil
 }
 
-func (this *Producer) Enqueue(data []byte) error {
+func (p *Producer) Enqueue(data []byte) error {
 	var m = kafka.Message{}
-	m.Topic = this.topic
+	m.Topic = p.topic
 	m.Value = data
-	return this.EnqueueMessages(m)
+	return p.EnqueueMessages(m)
 }
 
-func (this *Producer) EnqueueMessage(m kafka.Message) error {
-	m.Topic = this.topic
-	return this.EnqueueMessages(m)
+func (p *Producer) EnqueueMessage(m kafka.Message) error {
+	m.Topic = p.topic
+	return p.EnqueueMessages(m)
 }
 
-func (this *Producer) MultiEnqueue(data ...[]byte) error {
+func (p *Producer) MultiEnqueue(data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
@@ -43,30 +43,30 @@ func (this *Producer) MultiEnqueue(data ...[]byte) error {
 	var ms = make([]kafka.Message, 0, len(data))
 	for _, d := range data {
 		var m = kafka.Message{}
-		m.Topic = this.topic
+		m.Topic = p.topic
 		m.Value = d
 		ms = append(ms, m)
 	}
-	return this.EnqueueMessages(ms...)
+	return p.EnqueueMessages(ms...)
 }
 
-func (this *Producer) EnqueueMessages(m ...kafka.Message) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (p *Producer) EnqueueMessages(m ...kafka.Message) error {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
-	return this.writer.WriteMessages(context.Background(), m...)
+	return p.writer.WriteMessages(context.Background(), m...)
 }
 
-func (this *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *Producer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.writer != nil {
-		if err := this.writer.Close(); err != nil {
+	if p.writer != nil {
+		if err := p.writer.Close(); err != nil {
 			return err
 		}
-		this.writer = nil
+		p.writer = nil
 	}
 
 	return nil
