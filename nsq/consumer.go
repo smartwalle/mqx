@@ -4,11 +4,12 @@ import (
 	"errors"
 	"github.com/nsqio/go-nsq"
 	"github.com/smartwalle/mx"
-	"sync/atomic"
+	"sync"
 )
 
 type Consumer struct {
-	closed   int32
+	closed   bool
+	mu       *sync.Mutex
 	topic    string
 	group    string
 	config   *Config
@@ -19,7 +20,8 @@ type Consumer struct {
 
 func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	var c = &Consumer{}
-	c.closed = 0
+	c.closed = false
+	c.mu = &sync.Mutex{}
 	c.topic = topic
 	c.group = group
 	c.config = config
@@ -32,7 +34,10 @@ func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
 }
 
 func (c *Consumer) Dequeue(handler mx.Handler) error {
-	if atomic.LoadInt32(&c.closed) == 1 {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.closed {
 		return mx.ErrClosedQueue
 	}
 
@@ -68,9 +73,14 @@ func (c *Consumer) Dequeue(handler mx.Handler) error {
 }
 
 func (c *Consumer) Close() error {
-	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
-		return nil
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.closed {
+		return mx.ErrClosedQueue
 	}
+
+	c.closed = true
 
 	if c.consumer != nil {
 		c.consumer.Stop()
