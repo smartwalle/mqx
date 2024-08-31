@@ -33,42 +33,42 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	return p, nil
 }
 
-func (this *Producer) Enqueue(data []byte) error {
+func (p *Producer) Enqueue(data []byte) error {
 	var m = &n.Msg{}
-	m.Subject = this.topic
+	m.Subject = p.topic
 	m.Data = data
-	return this.EnqueueMessage(m)
+	return p.EnqueueMessage(m)
 }
 
-func (this *Producer) EnqueueMessage(m *n.Msg) error {
+func (p *Producer) EnqueueMessage(m *n.Msg) error {
 	if m == nil {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	m.Subject = this.topic
+	m.Subject = p.topic
 
-	err := this.conn.PublishMsg(m)
+	err := p.conn.PublishMsg(m)
 	return err
 }
 
-func (this *Producer) MultiEnqueue(data ...[]byte) error {
+func (p *Producer) MultiEnqueue(data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
 	for _, d := range data {
 		var m = &n.Msg{}
-		m.Subject = this.topic
+		m.Subject = p.topic
 		m.Data = d
-		if err := this.conn.PublishMsg(m); err != nil {
+		if err := p.conn.PublishMsg(m); err != nil {
 			return err
 		}
 	}
@@ -76,14 +76,14 @@ func (this *Producer) MultiEnqueue(data ...[]byte) error {
 	return nil
 }
 
-func (this *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *Producer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.conn != nil {
-		this.conn.Close()
-		this.conn = nil
+	if p.conn != nil {
+		p.conn.Close()
+		p.conn = nil
 	}
 	return nil
 }
