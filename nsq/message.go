@@ -7,20 +7,20 @@ type Message struct {
 	topic string
 }
 
-func (this *Message) Value() []byte {
-	if this.m != nil {
-		return this.m.Body
+func (m *Message) Value() []byte {
+	if m.m != nil {
+		return m.m.Body
 	}
 	return nil
 }
 
-func (this *Message) Topic() string {
-	if this.m != nil {
-		return this.topic
+func (m *Message) Topic() string {
+	if m.m != nil {
+		return m.topic
 	}
 	return ""
 }
 
-func (this *Message) Message() *nsq.Message {
-	return this.m
+func (m *Message) Message() *nsq.Message {
+	return m.m
 }

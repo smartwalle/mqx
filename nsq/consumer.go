@@ -26,56 +26,56 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	return c, nil
 }
 
-func (this *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
-	this.logger = l
-	this.logLevel = lv
+func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
+	c.logger = l
+	c.logLevel = lv
 }
 
-func (this *Consumer) Dequeue(handler mx.Handler) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (c *Consumer) Dequeue(handler mx.Handler) error {
+	if atomic.LoadInt32(&c.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	if this.consumer != nil {
-		this.consumer.Stop()
-		<-this.consumer.StopChan
-		this.consumer = nil
+	if c.consumer != nil {
+		c.consumer.Stop()
+		<-c.consumer.StopChan
+		c.consumer = nil
 	}
 
-	if this.consumer == nil {
-		consumer, err := nsq.NewConsumer(this.topic, this.group, this.config.Config)
+	if c.consumer == nil {
+		consumer, err := nsq.NewConsumer(c.topic, c.group, c.config.Config)
 		if err != nil {
 			return err
 		}
-		this.consumer = consumer
-		this.consumer.SetLogger(this.logger, this.logLevel)
+		c.consumer = consumer
+		c.consumer.SetLogger(c.logger, c.logLevel)
 	}
 
-	this.consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
+	c.consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 		var m = &Message{}
 		m.m = message
-		m.topic = this.topic
+		m.topic = c.topic
 		if handler(m) {
 			return nil
 		}
 		return errors.New("consume message failed")
 	}))
 
-	if err := this.consumer.ConnectToNSQLookupds(this.config.NSQLookupAddrs); err != nil {
+	if err := c.consumer.ConnectToNSQLookupds(c.config.NSQLookupAddrs); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (this *Consumer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (c *Consumer) Close() error {
+	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
 		return nil
 	}
 
-	if this.consumer != nil {
-		this.consumer.Stop()
-		<-this.consumer.StopChan
-		this.consumer = nil
+	if c.consumer != nil {
+		c.consumer.Stop()
+		<-c.consumer.StopChan
+		c.consumer = nil
 	}
 	return nil
 }
