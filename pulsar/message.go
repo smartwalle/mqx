@@ -6,22 +6,22 @@ type Message struct {
 	m pulsar.Message
 }
 
-func (this *Message) Value() []byte {
-	if this.m != nil {
-		return this.m.Payload()
+func (m *Message) Value() []byte {
+	if m.m != nil {
+		return m.m.Payload()
 	}
 	return nil
 }
 
-func (this *Message) Topic() string {
-	if this.m != nil {
-		return this.m.Topic()
+func (m *Message) Topic() string {
+	if m.m != nil {
+		return m.m.Topic()
 	}
 	return ""
 }
 
-func (this *Message) Message() pulsar.Message {
-	return this.m
+func (m *Message) Message() pulsar.Message {
+	return m.m
 }
 
 func NewProducerMessage() *pulsar.ProducerMessage {

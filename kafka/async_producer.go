@@ -40,48 +40,48 @@ func NewAsyncProducer(topic string, config *Config) (*AsyncProducer, error) {
 	return p, nil
 }
 
-func (this *AsyncProducer) handleSuccesses() {
-	defer this.wg.Done()
-	for msg := range this.producer.Successes() {
-		if this.Completion != nil {
-			this.Completion(msg, nil)
+func (p *AsyncProducer) handleSuccesses() {
+	defer p.wg.Done()
+	for msg := range p.producer.Successes() {
+		if p.Completion != nil {
+			p.Completion(msg, nil)
 		}
 	}
 }
 
-func (this *AsyncProducer) handleErrors() {
-	defer this.wg.Done()
-	for err := range this.producer.Errors() {
-		if this.Completion != nil {
-			this.Completion(err.Msg, err.Err)
+func (p *AsyncProducer) handleErrors() {
+	defer p.wg.Done()
+	for err := range p.producer.Errors() {
+		if p.Completion != nil {
+			p.Completion(err.Msg, err.Err)
 		}
 	}
 }
 
-func (this *AsyncProducer) Enqueue(data []byte) error {
+func (p *AsyncProducer) Enqueue(data []byte) error {
 	var m = &sarama.ProducerMessage{}
-	m.Topic = this.topic
+	m.Topic = p.topic
 	//m.Partition =
 	//m.Key =
 	m.Value = sarama.ByteEncoder(data)
-	return this.EnqueueMessage(m)
+	return p.EnqueueMessage(m)
 }
 
-func (this *AsyncProducer) EnqueueMessage(m *sarama.ProducerMessage) error {
+func (p *AsyncProducer) EnqueueMessage(m *sarama.ProducerMessage) error {
 	if m == nil {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	m.Topic = this.topic
-	this.producer.Input() <- m
+	m.Topic = p.topic
+	p.producer.Input() <- m
 	return nil
 }
 
-func (this *AsyncProducer) MultiEnqueue(data ...[]byte) error {
+func (p *AsyncProducer) MultiEnqueue(data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
@@ -89,37 +89,37 @@ func (this *AsyncProducer) MultiEnqueue(data ...[]byte) error {
 	var ms = make([]*sarama.ProducerMessage, 0, len(data))
 	for _, d := range data {
 		var m = &sarama.ProducerMessage{}
-		m.Topic = this.topic
+		m.Topic = p.topic
 		m.Value = sarama.ByteEncoder(d)
 		ms = append(ms, m)
 	}
-	return this.EnqueueMessages(ms...)
+	return p.EnqueueMessages(ms...)
 }
 
-func (this *AsyncProducer) EnqueueMessages(m ...*sarama.ProducerMessage) error {
+func (p *AsyncProducer) EnqueueMessages(m ...*sarama.ProducerMessage) error {
 	if m == nil {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
 	for _, ele := range m {
-		this.producer.Input() <- ele
+		p.producer.Input() <- ele
 	}
 	return nil
 }
 
-func (this *AsyncProducer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *AsyncProducer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.producer != nil {
-		this.producer.AsyncClose()
-		this.wg.Wait()
-		this.producer = nil
+	if p.producer != nil {
+		p.producer.AsyncClose()
+		p.wg.Wait()
+		p.producer = nil
 	}
 
 	return nil

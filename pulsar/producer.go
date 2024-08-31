@@ -35,64 +35,64 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	return p, nil
 }
 
-func (this *Producer) Enqueue(data []byte) error {
+func (p *Producer) Enqueue(data []byte) error {
 	var m = NewProducerMessage()
 	m.Payload = data
-	return this.EnqueueMessage(m)
+	return p.EnqueueMessage(m)
 }
 
-func (this *Producer) EnqueueMessage(m *pulsar.ProducerMessage) error {
+func (p *Producer) EnqueueMessage(m *pulsar.ProducerMessage) error {
 	if m == nil {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	_, err := this.producer.Send(context.Background(), m)
+	_, err := p.producer.Send(context.Background(), m)
 	return err
 }
 
-func (this *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
+func (p *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
 	var m = NewProducerMessage()
 	m.Payload = data
 	m.DeliverAfter = delay
-	return this.EnqueueMessage(m)
+	return p.EnqueueMessage(m)
 }
 
-func (this *Producer) MultiEnqueue(data ...[]byte) error {
+func (p *Producer) MultiEnqueue(data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
 	for _, d := range data {
 		var m = NewProducerMessage()
 		m.Payload = d
-		if _, err := this.producer.Send(context.Background(), m); err != nil {
+		if _, err := p.producer.Send(context.Background(), m); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (this *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *Producer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.producer != nil {
-		this.producer.Close()
-		this.producer = nil
+	if p.producer != nil {
+		p.producer.Close()
+		p.producer = nil
 	}
 
-	if this.client != nil {
-		this.client.Close()
-		this.client = nil
+	if p.client != nil {
+		p.client.Close()
+		p.client = nil
 	}
 
 	return nil

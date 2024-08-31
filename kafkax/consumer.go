@@ -24,21 +24,21 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	return c, nil
 }
 
-func (this *Consumer) Dequeue(handler mx.Handler) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (c *Consumer) Dequeue(handler mx.Handler) error {
+	if atomic.LoadInt32(&c.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	if this.reader != nil {
-		this.reader.Close()
-		this.reader = nil
+	if c.reader != nil {
+		c.reader.Close()
+		c.reader = nil
 	}
 
-	this.config.Reader.Topic = this.topic
-	this.config.Reader.GroupID = this.group
+	c.config.Reader.Topic = c.topic
+	c.config.Reader.GroupID = c.group
 
-	var reader = kafka.NewReader(this.config.Reader)
-	this.reader = reader
+	var reader = kafka.NewReader(c.config.Reader)
+	c.reader = reader
 
 	go func() {
 		for {
@@ -58,16 +58,16 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 	return nil
 }
 
-func (this *Consumer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (c *Consumer) Close() error {
+	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
 		return nil
 	}
 
-	if this.reader != nil {
-		if err := this.reader.Close(); err != nil {
+	if c.reader != nil {
+		if err := c.reader.Close(); err != nil {
 			return err
 		}
-		this.reader = nil
+		c.reader = nil
 	}
 
 	return nil

@@ -32,30 +32,30 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	return p, nil
 }
 
-func (this *Producer) Enqueue(data []byte) error {
+func (p *Producer) Enqueue(data []byte) error {
 	var m = &sarama.ProducerMessage{}
-	m.Topic = this.topic
+	m.Topic = p.topic
 	//m.Partition =
 	//m.Key =
 	m.Value = sarama.ByteEncoder(data)
-	return this.EnqueueMessage(m)
+	return p.EnqueueMessage(m)
 }
 
-func (this *Producer) EnqueueMessage(m *sarama.ProducerMessage) error {
+func (p *Producer) EnqueueMessage(m *sarama.ProducerMessage) error {
 	if m == nil {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	m.Topic = this.topic
-	_, _, err := this.producer.SendMessage(m)
+	m.Topic = p.topic
+	_, _, err := p.producer.SendMessage(m)
 	return err
 }
 
-func (this *Producer) MultiEnqueue(data ...[]byte) error {
+func (p *Producer) MultiEnqueue(data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
@@ -63,35 +63,35 @@ func (this *Producer) MultiEnqueue(data ...[]byte) error {
 	var ms = make([]*sarama.ProducerMessage, 0, len(data))
 	for _, d := range data {
 		var m = &sarama.ProducerMessage{}
-		m.Topic = this.topic
+		m.Topic = p.topic
 		m.Value = sarama.ByteEncoder(d)
 		ms = append(ms, m)
 	}
-	return this.EnqueueMessages(ms...)
+	return p.EnqueueMessages(ms...)
 }
 
-func (this *Producer) EnqueueMessages(m ...*sarama.ProducerMessage) error {
+func (p *Producer) EnqueueMessages(m ...*sarama.ProducerMessage) error {
 	if m == nil {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	return this.producer.SendMessages(m)
+	return p.producer.SendMessages(m)
 }
 
-func (this *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *Producer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.producer != nil {
-		if err := this.producer.Close(); err != nil {
+	if p.producer != nil {
+		if err := p.producer.Close(); err != nil {
 			return err
 		}
-		this.producer = nil
+		p.producer = nil
 	}
 
 	return nil

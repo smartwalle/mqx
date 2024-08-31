@@ -48,31 +48,31 @@ func NewTxProducer(listener primitive.TransactionListener, config *Config) (*TxP
 	return q, nil
 }
 
-func (this *TxProducer) Enqueue(topic string, value []byte, properties map[string]string) (*primitive.TransactionSendResult, error) {
+func (p *TxProducer) Enqueue(topic string, value []byte, properties map[string]string) (*primitive.TransactionSendResult, error) {
 	var m = primitive.NewMessage(topic, value)
 	m.WithProperties(properties)
-	return this.EnqueueMessage(m)
+	return p.EnqueueMessage(m)
 }
 
-func (this *TxProducer) EnqueueMessage(m *primitive.Message) (*primitive.TransactionSendResult, error) {
+func (p *TxProducer) EnqueueMessage(m *primitive.Message) (*primitive.TransactionSendResult, error) {
 	if m == nil {
 		return nil, nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return nil, mx.ErrClosedQueue
 	}
 
-	return this.producer.SendMessageInTransaction(context.Background(), m)
+	return p.producer.SendMessageInTransaction(context.Background(), m)
 }
 
-func (this *TxProducer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *TxProducer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.producer != nil {
-		if err := this.producer.Shutdown(); err != nil {
+	if p.producer != nil {
+		if err := p.producer.Shutdown(); err != nil {
 			return err
 		}
 	}

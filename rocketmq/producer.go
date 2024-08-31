@@ -50,52 +50,52 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	return p, nil
 }
 
-func (this *Producer) Enqueue(data []byte) error {
-	var m = primitive.NewMessage(this.topic, data)
-	return this.EnqueueMessages(m)
+func (p *Producer) Enqueue(data []byte) error {
+	var m = primitive.NewMessage(p.topic, data)
+	return p.EnqueueMessages(m)
 }
 
-func (this *Producer) EnqueueMessage(m *primitive.Message) error {
-	m.Topic = this.topic
-	return this.EnqueueMessages(m)
+func (p *Producer) EnqueueMessage(m *primitive.Message) error {
+	m.Topic = p.topic
+	return p.EnqueueMessages(m)
 }
 
-func (this *Producer) MultiEnqueue(data ...[]byte) error {
+func (p *Producer) MultiEnqueue(data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
 
 	var ms = make([]*primitive.Message, 0, len(data))
 	for _, d := range data {
-		var m = primitive.NewMessage(this.topic, d)
+		var m = primitive.NewMessage(p.topic, d)
 		ms = append(ms, m)
 	}
-	return this.EnqueueMessages(ms...)
+	return p.EnqueueMessages(ms...)
 }
 
-func (this *Producer) EnqueueMessages(m ...*primitive.Message) error {
+func (p *Producer) EnqueueMessages(m ...*primitive.Message) error {
 	if len(m) == 0 {
 		return nil
 	}
 
-	if atomic.LoadInt32(&this.closed) == 1 {
+	if atomic.LoadInt32(&p.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	_, err := this.producer.SendSync(context.Background(), m...)
+	_, err := p.producer.SendSync(context.Background(), m...)
 	return err
 }
 
-func (this *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (p *Producer) Close() error {
+	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
 		return nil
 	}
 
-	if this.producer != nil {
-		if err := this.producer.Shutdown(); err != nil {
+	if p.producer != nil {
+		if err := p.producer.Shutdown(); err != nil {
 			return err
 		}
-		this.producer = nil
+		p.producer = nil
 	}
 
 	return nil

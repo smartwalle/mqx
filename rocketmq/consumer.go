@@ -26,48 +26,48 @@ func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
 	return c, nil
 }
 
-func (this *Consumer) Dequeue(handler mx.Handler) error {
-	if atomic.LoadInt32(&this.closed) == 1 {
+func (c *Consumer) Dequeue(handler mx.Handler) error {
+	if atomic.LoadInt32(&c.closed) == 1 {
 		return mx.ErrClosedQueue
 	}
 
-	if this.consumer != nil {
-		this.consumer.Unsubscribe(this.topic)
-		this.consumer.Shutdown()
-		this.consumer = nil
+	if c.consumer != nil {
+		c.consumer.Unsubscribe(c.topic)
+		c.consumer.Shutdown()
+		c.consumer = nil
 	}
 
-	if this.consumer == nil {
+	if c.consumer == nil {
 		var opts []consumer.Option
-		opts = append(opts, consumer.WithGroupName(this.group))
-		opts = append(opts, consumer.WithInstance(this.config.InstanceName))
-		opts = append(opts, consumer.WithNameServer(this.config.NameServerAddrs))
-		opts = append(opts, consumer.WithNameServerDomain(this.config.NameServerDomain))
-		opts = append(opts, consumer.WithNamespace(this.config.Namespace))
-		opts = append(opts, consumer.WithVIPChannel(this.config.VIPChannelEnabled))
-		opts = append(opts, consumer.WithRetry(this.config.RetryTimes))
-		opts = append(opts, consumer.WithCredentials(this.config.Credentials))
+		opts = append(opts, consumer.WithGroupName(c.group))
+		opts = append(opts, consumer.WithInstance(c.config.InstanceName))
+		opts = append(opts, consumer.WithNameServer(c.config.NameServerAddrs))
+		opts = append(opts, consumer.WithNameServerDomain(c.config.NameServerDomain))
+		opts = append(opts, consumer.WithNamespace(c.config.Namespace))
+		opts = append(opts, consumer.WithVIPChannel(c.config.VIPChannelEnabled))
+		opts = append(opts, consumer.WithRetry(c.config.RetryTimes))
+		opts = append(opts, consumer.WithCredentials(c.config.Credentials))
 
-		opts = append(opts, consumer.WithConsumerModel(this.config.Consumer.ConsumerModel))
-		opts = append(opts, consumer.WithConsumeFromWhere(this.config.Consumer.FromWhere))
-		opts = append(opts, consumer.WithConsumerOrder(this.config.Consumer.ConsumeOrderly))
-		opts = append(opts, consumer.WithConsumeMessageBatchMaxSize(this.config.Consumer.ConsumeMessageBatchMaxSize))
-		opts = append(opts, consumer.WithInterceptor(this.config.Consumer.Interceptors...))
-		opts = append(opts, consumer.WithMaxReconsumeTimes(this.config.Consumer.MaxReconsumeTimes))
-		opts = append(opts, consumer.WithStrategy(this.config.Consumer.Strategy))
-		opts = append(opts, consumer.WithPullBatchSize(this.config.Consumer.PullBatchSize))
-		opts = append(opts, consumer.WithRebalanceLockInterval(this.config.Consumer.RebalanceLockInterval))
-		opts = append(opts, consumer.WithAutoCommit(this.config.Consumer.AutoCommit))
-		opts = append(opts, consumer.WithSuspendCurrentQueueTimeMillis(this.config.Consumer.SuspendCurrentQueueTimeMillis))
+		opts = append(opts, consumer.WithConsumerModel(c.config.Consumer.ConsumerModel))
+		opts = append(opts, consumer.WithConsumeFromWhere(c.config.Consumer.FromWhere))
+		opts = append(opts, consumer.WithConsumerOrder(c.config.Consumer.ConsumeOrderly))
+		opts = append(opts, consumer.WithConsumeMessageBatchMaxSize(c.config.Consumer.ConsumeMessageBatchMaxSize))
+		opts = append(opts, consumer.WithInterceptor(c.config.Consumer.Interceptors...))
+		opts = append(opts, consumer.WithMaxReconsumeTimes(c.config.Consumer.MaxReconsumeTimes))
+		opts = append(opts, consumer.WithStrategy(c.config.Consumer.Strategy))
+		opts = append(opts, consumer.WithPullBatchSize(c.config.Consumer.PullBatchSize))
+		opts = append(opts, consumer.WithRebalanceLockInterval(c.config.Consumer.RebalanceLockInterval))
+		opts = append(opts, consumer.WithAutoCommit(c.config.Consumer.AutoCommit))
+		opts = append(opts, consumer.WithSuspendCurrentQueueTimeMillis(c.config.Consumer.SuspendCurrentQueueTimeMillis))
 
 		consumer, err := rocketmq.NewPushConsumer(opts...)
 		if err != nil {
 			return err
 		}
-		this.consumer = consumer
+		c.consumer = consumer
 	}
 
-	this.consumer.Subscribe(this.topic, consumer.MessageSelector{}, func(ctx context.Context, messages ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+	c.consumer.Subscribe(c.topic, consumer.MessageSelector{}, func(ctx context.Context, messages ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range messages {
 			var m = &Message{}
 			m.m = msg
@@ -77,21 +77,21 @@ func (this *Consumer) Dequeue(handler mx.Handler) error {
 		}
 		return consumer.ConsumeRetryLater, nil
 	})
-	this.consumer.Start()
+	c.consumer.Start()
 	return nil
 }
 
-func (this *Consumer) Close() error {
-	if !atomic.CompareAndSwapInt32(&this.closed, 0, 1) {
+func (c *Consumer) Close() error {
+	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
 		return nil
 	}
 
-	if this.consumer != nil {
-		this.consumer.Unsubscribe(this.topic)
-		if err := this.consumer.Shutdown(); err != nil {
+	if c.consumer != nil {
+		c.consumer.Unsubscribe(c.topic)
+		if err := c.consumer.Shutdown(); err != nil {
 			return err
 		}
-		this.consumer = nil
+		c.consumer = nil
 	}
 
 	return nil
