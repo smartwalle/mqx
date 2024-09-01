@@ -87,12 +87,10 @@ func (p *Producer) Close() error {
 
 	if p.producer != nil {
 		p.producer.Close()
-		p.producer = nil
 	}
 
 	if p.client != nil {
 		p.client.Close()
-		p.client = nil
 	}
 
 	return nil
