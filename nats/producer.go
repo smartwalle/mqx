@@ -83,7 +83,6 @@ func (p *Producer) Close() error {
 
 	if p.conn != nil {
 		p.conn.Close()
-		p.conn = nil
 	}
 	return nil
 }
