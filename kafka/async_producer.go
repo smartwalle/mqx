@@ -119,7 +119,6 @@ func (p *AsyncProducer) Close() error {
 	if p.producer != nil {
 		p.producer.AsyncClose()
 		p.wg.Wait()
-		p.producer = nil
 	}
 
 	return nil
