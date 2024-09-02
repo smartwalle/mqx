@@ -91,7 +91,6 @@ func (p *Producer) Close() error {
 		if err := p.producer.Close(); err != nil {
 			return err
 		}
-		p.producer = nil
 	}
 
 	return nil
