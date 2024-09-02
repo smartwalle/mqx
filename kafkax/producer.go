@@ -66,7 +66,6 @@ func (p *Producer) Close() error {
 		if err := p.writer.Close(); err != nil {
 			return err
 		}
-		p.writer = nil
 	}
 
 	return nil
