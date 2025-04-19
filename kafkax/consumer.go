@@ -4,39 +4,34 @@ import (
 	"context"
 	"github.com/segmentio/kafka-go"
 	"github.com/smartwalle/mx"
-	"sync"
+	"sync/atomic"
 )
 
+type Message = kafka.Message
+
+type Handler func(ctx context.Context, message Message) bool
+
 type Consumer struct {
-	closed bool
-	mu     *sync.Mutex
-	topic  string
-	group  string
-	config *Config
-	reader *kafka.Reader
+	topic      string
+	group      string
+	config     *Config
+	handler    Handler
+	reader     *kafka.Reader
+	inShutdown atomic.Bool
 }
 
-func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
+func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer {
 	var c = &Consumer{}
-	c.closed = false
-	c.mu = &sync.Mutex{}
 	c.topic = topic
 	c.group = group
 	c.config = config
-	return c, nil
+	c.handler = handler
+	return c
 }
 
-func (c *Consumer) Dequeue(handler mx.Handler) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if c.closed {
+func (c *Consumer) Start(ctx context.Context) error {
+	if c.inShutdown.Load() {
 		return mx.ErrClosedQueue
-	}
-
-	if c.reader != nil {
-		c.reader.Close()
-		c.reader = nil
 	}
 
 	c.config.Reader.Topic = c.topic
@@ -45,39 +40,29 @@ func (c *Consumer) Dequeue(handler mx.Handler) error {
 	var reader = kafka.NewReader(c.config.Reader)
 	c.reader = reader
 
-	go func() {
-		for {
-			message, err := reader.FetchMessage(context.Background())
-			if err != nil {
-				return
-			}
+	for {
+		message, err := reader.FetchMessage(ctx)
+		if err != nil {
+			return err
+		}
 
-			var m = &Message{}
-			m.m = message
-			if handler(m) {
-				reader.CommitMessages(context.Background(), message)
+		if c.handler(ctx, message) {
+			if err = reader.CommitMessages(ctx, message); err != nil {
+				return err
 			}
 		}
-	}()
-
-	return nil
+	}
 }
 
-func (c *Consumer) Close() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if c.closed {
-		return mx.ErrClosedQueue
+func (c *Consumer) Stop(ctx context.Context) error {
+	if !c.inShutdown.CompareAndSwap(false, true) {
+		return nil
 	}
-
-	c.closed = true
 
 	if c.reader != nil {
 		if err := c.reader.Close(); err != nil {
 			return err
 		}
-		c.reader = nil
 	}
 
 	return nil

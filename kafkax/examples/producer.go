@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/smartwalle/mx/kafkax"
 	"os"
@@ -10,17 +11,13 @@ import (
 
 func main() {
 	var config = kafkax.NewConfig()
-	config.Writer.Addr = kafkax.TCP("192.168.1.99:9092")
+	config.Writer.Addr = kafkax.TCP("192.168.1.4:9092")
 	config.Writer.Async = true
-	p, err := kafkax.NewProducer("topic-1", config)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	producer := kafkax.NewProducer("topic-1", config)
 
 	fmt.Println("begin...")
-	for i := 0; i < 100000; i++ {
-		if err := p.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
+	for i := 0; i < 10; i++ {
+		if err := producer.Enqueue(context.Background(), []byte(fmt.Sprintf("hello %d", i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break
 		}
@@ -32,5 +29,5 @@ func main() {
 	select {
 	case <-sig:
 	}
-	fmt.Println("Close", p.Close())
+	fmt.Println("Close", producer.Close())
 }
