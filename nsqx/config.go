@@ -1,8 +1,13 @@
 package nsqx
 
 import (
+	"errors"
 	"github.com/nsqio/go-nsq"
 	"time"
+)
+
+var (
+	ErrClosedQueue = errors.New("closed queue")
 )
 
 type Config struct {

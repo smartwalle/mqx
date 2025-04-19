@@ -1,8 +1,13 @@
 package kafkax
 
 import (
+	"errors"
 	"github.com/segmentio/kafka-go"
 	"net"
+)
+
+var (
+	ErrClosedQueue = errors.New("closed queue")
 )
 
 type Config struct {
