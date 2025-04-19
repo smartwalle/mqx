@@ -3,17 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/smartwalle/mx/nsq"
+	"github.com/smartwalle/mx/nsqx"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
-	var config = nsq.NewConfig()
+	var config = nsqx.NewConfig()
 	config.NSQAddr = "127.0.0.1:4150"
 	config.NSQLookupAddrs = []string{"127.0.0.1:4161"}
-	producer, err := nsq.NewProducer("topic-1", config)
+	producer, err := nsqx.NewProducer("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return

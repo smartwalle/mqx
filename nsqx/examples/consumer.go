@@ -3,17 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/smartwalle/mx/nsq"
+	"github.com/smartwalle/mx/nsqx"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
-	var config = nsq.NewConfig()
+	var config = nsqx.NewConfig()
 	config.NSQAddr = "127.0.0.1:4150"
 	config.NSQLookupAddrs = []string{"127.0.0.1:4161"}
-	var consumer = nsq.NewConsumer("topic-1", "channel-1", config, func(ctx context.Context, message *nsq.Message) error {
+	var consumer = nsqx.NewConsumer("topic-1", "channel-1", config, func(ctx context.Context, message *nsqx.Message) error {
 		fmt.Println(string(message.Body))
 		return nil
 	})

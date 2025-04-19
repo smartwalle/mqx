@@ -1,4 +1,4 @@
-module github.com/smartwalle/mx/nsq
+module github.com/smartwalle/mx/nsqx
 
 go 1.13
 
