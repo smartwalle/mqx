@@ -12,15 +12,16 @@ func main() {
 	var config = nsq.NewConfig()
 	config.NSQAddr = "127.0.0.1:4150"
 	config.NSQLookupAddrs = []string{"127.0.0.1:4161"}
-	p, err := nsq.NewProducer("topic-1", config)
+	producer, err := nsq.NewProducer("topic-1", config)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	defer producer.Close()
 
 	fmt.Println("begin...")
 	for i := 0; i < 1000; i++ {
-		if err := p.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
+		if err := producer.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break
 		}
@@ -32,5 +33,4 @@ func main() {
 	select {
 	case <-sig:
 	}
-	fmt.Println("Close", p.Close())
 }

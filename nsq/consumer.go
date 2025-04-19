@@ -1,31 +1,34 @@
 package nsq
 
 import (
-	"errors"
+	"context"
 	"github.com/nsqio/go-nsq"
 	"github.com/smartwalle/mx"
-	"sync"
+	"sync/atomic"
 )
 
+type Message = nsq.Message
+
+type Handler func(ctx context.Context, message *Message) error
+
 type Consumer struct {
-	closed   bool
-	mu       *sync.Mutex
-	topic    string
-	group    string
-	config   *Config
-	consumer *nsq.Consumer
-	logger   Logger
-	logLevel nsq.LogLevel
+	topic      string
+	group      string
+	config     *Config
+	handler    Handler
+	consumer   *nsq.Consumer
+	logger     Logger
+	logLevel   nsq.LogLevel
+	inShutdown atomic.Bool
 }
 
-func NewConsumer(topic, group string, config *Config) (*Consumer, error) {
+func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer {
 	var c = &Consumer{}
-	c.closed = false
-	c.mu = &sync.Mutex{}
 	c.topic = topic
 	c.group = group
 	c.config = config
-	return c, nil
+	c.handler = handler
+	return c
 }
 
 func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
@@ -33,59 +36,36 @@ func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
 	c.logLevel = lv
 }
 
-func (c *Consumer) Dequeue(handler mx.Handler) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if c.closed {
+func (c *Consumer) Start(ctx context.Context) error {
+	if c.inShutdown.Load() {
 		return mx.ErrClosedQueue
 	}
 
-	if c.consumer != nil {
-		c.consumer.Stop()
-		<-c.consumer.StopChan
-		c.consumer = nil
+	consumer, err := nsq.NewConsumer(c.topic, c.group, c.config.Config)
+	if err != nil {
+		return err
 	}
-
-	if c.consumer == nil {
-		consumer, err := nsq.NewConsumer(c.topic, c.group, c.config.Config)
-		if err != nil {
-			return err
-		}
-		c.consumer = consumer
-		c.consumer.SetLogger(c.logger, c.logLevel)
-	}
+	c.consumer = consumer
+	c.consumer.SetLogger(c.logger, c.logLevel)
 
 	c.consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-		var m = &Message{}
-		m.m = message
-		m.topic = c.topic
-		if handler(m) {
-			return nil
-		}
-		return errors.New("consume message failed")
+		return c.handler(ctx, message)
 	}))
 
-	if err := c.consumer.ConnectToNSQLookupds(c.config.NSQLookupAddrs); err != nil {
+	if err = c.consumer.ConnectToNSQLookupds(c.config.NSQLookupAddrs); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Consumer) Close() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if c.closed {
-		return mx.ErrClosedQueue
+func (c *Consumer) Stop(ctx context.Context) error {
+	if !c.inShutdown.CompareAndSwap(false, true) {
+		return nil
 	}
-
-	c.closed = true
 
 	if c.consumer != nil {
 		c.consumer.Stop()
 		<-c.consumer.StopChan
-		c.consumer = nil
 	}
 	return nil
 }

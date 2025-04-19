@@ -8,10 +8,10 @@ import (
 )
 
 type Producer struct {
-	closed   int32
-	topic    string
-	config   *Config
-	producer *nsq.Producer
+	topic      string
+	config     *Config
+	producer   *nsq.Producer
+	inShutdown atomic.Bool
 }
 
 func NewProducer(topic string, config *Config) (*Producer, error) {
@@ -21,7 +21,6 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	}
 
 	var p = &Producer{}
-	p.closed = 0
 	p.topic = topic
 	p.config = config
 	p.producer = producer
@@ -33,14 +32,14 @@ func (p *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
 }
 
 func (p *Producer) Enqueue(data []byte) error {
-	if atomic.LoadInt32(&p.closed) == 1 {
+	if p.inShutdown.Load() {
 		return mx.ErrClosedQueue
 	}
 	return p.producer.Publish(p.topic, data)
 }
 
 func (p *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
-	if atomic.LoadInt32(&p.closed) == 1 {
+	if p.inShutdown.Load() {
 		return mx.ErrClosedQueue
 	}
 	return p.producer.DeferredPublish(p.topic, delay, data)
@@ -51,14 +50,14 @@ func (p *Producer) MultiEnqueue(data ...[]byte) error {
 		return nil
 	}
 
-	if atomic.LoadInt32(&p.closed) == 1 {
+	if p.inShutdown.Load() {
 		return mx.ErrClosedQueue
 	}
 	return p.producer.MultiPublish(p.topic, data)
 }
 
 func (p *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
+	if !p.inShutdown.CompareAndSwap(false, true) {
 		return nil
 	}
 
