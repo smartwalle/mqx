@@ -3,7 +3,6 @@ package kafkax
 import (
 	"context"
 	"github.com/segmentio/kafka-go"
-	"github.com/smartwalle/mx"
 	"sync/atomic"
 )
 
@@ -31,7 +30,7 @@ func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer
 
 func (c *Consumer) Start(ctx context.Context) error {
 	if c.inShutdown.Load() {
-		return mx.ErrClosedQueue
+		return ErrClosedQueue
 	}
 
 	c.config.Reader.Topic = c.topic

@@ -3,7 +3,6 @@ package nsqx
 import (
 	"context"
 	"github.com/nsqio/go-nsq"
-	"github.com/smartwalle/mx"
 	"sync/atomic"
 )
 
@@ -38,7 +37,7 @@ func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
 
 func (c *Consumer) Start(ctx context.Context) error {
 	if c.inShutdown.Load() {
-		return mx.ErrClosedQueue
+		return ErrClosedQueue
 	}
 
 	consumer, err := nsq.NewConsumer(c.topic, c.group, c.config.Config)

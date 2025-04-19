@@ -3,7 +3,6 @@ package kafkax
 import (
 	"context"
 	"github.com/segmentio/kafka-go"
-	"github.com/smartwalle/mx"
 	"sync/atomic"
 )
 
@@ -49,7 +48,7 @@ func (p *Producer) MultiEnqueue(ctx context.Context, data ...[]byte) error {
 
 func (p *Producer) EnqueueMessages(ctx context.Context, messages ...kafka.Message) error {
 	if p.inShutdown.Load() {
-		return mx.ErrClosedQueue
+		return ErrClosedQueue
 	}
 
 	return p.writer.WriteMessages(ctx, messages...)
