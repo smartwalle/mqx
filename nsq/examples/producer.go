@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/smartwalle/mx/nsq"
 	"os"
@@ -21,7 +22,7 @@ func main() {
 
 	fmt.Println("begin...")
 	for i := 0; i < 1000; i++ {
-		if err := producer.Enqueue([]byte(fmt.Sprintf("hello %d", i))); err != nil {
+		if err := producer.Enqueue(context.Background(), []byte(fmt.Sprintf("hello %d", i))); err != nil {
 			fmt.Println("Enqueue", err)
 			break
 		}

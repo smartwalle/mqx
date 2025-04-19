@@ -1,6 +1,7 @@
 package nsq
 
 import (
+	"context"
 	"github.com/nsqio/go-nsq"
 	"github.com/smartwalle/mx"
 	"sync/atomic"
@@ -31,21 +32,21 @@ func (p *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
 	p.producer.SetLogger(l, lv)
 }
 
-func (p *Producer) Enqueue(data []byte) error {
+func (p *Producer) Enqueue(ctx context.Context, data []byte) error {
 	if p.inShutdown.Load() {
 		return mx.ErrClosedQueue
 	}
 	return p.producer.Publish(p.topic, data)
 }
 
-func (p *Producer) DeferredEnqueue(delay time.Duration, data []byte) error {
+func (p *Producer) DeferredEnqueue(ctx context.Context, delay time.Duration, data []byte) error {
 	if p.inShutdown.Load() {
 		return mx.ErrClosedQueue
 	}
 	return p.producer.DeferredPublish(p.topic, delay, data)
 }
 
-func (p *Producer) MultiEnqueue(data ...[]byte) error {
+func (p *Producer) MultiEnqueue(ctx context.Context, data ...[]byte) error {
 	if len(data) == 0 {
 		return nil
 	}
