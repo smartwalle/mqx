@@ -43,7 +43,7 @@ func (p *Producer) Enqueue(ctx context.Context, data []byte) error {
 
 func (p *Producer) EnqueueMessage(ctx context.Context, message *pulsar.ProducerMessage) error {
 	if p.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 	_, err := p.producer.Send(ctx, message)
 	return err
@@ -51,7 +51,7 @@ func (p *Producer) EnqueueMessage(ctx context.Context, message *pulsar.ProducerM
 
 func (p *Producer) DeferredEnqueue(ctx context.Context, delay time.Duration, data []byte) error {
 	if p.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 
 	var message = &pulsar.ProducerMessage{}

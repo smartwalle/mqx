@@ -37,7 +37,7 @@ func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
 
 func (c *Consumer) Start(ctx context.Context) error {
 	if c.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 
 	consumer, err := nsq.NewConsumer(c.topic, c.channel, c.config.Config)

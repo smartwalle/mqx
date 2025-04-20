@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrClosedQueue = errors.New("closed queue")
+	ErrQueueClosed = errors.New("queue closed")
 )
 
 type Config struct {

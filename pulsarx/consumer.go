@@ -33,7 +33,7 @@ func NewConsumer(topic, subscriptionName string, config *Config, handler Handler
 
 func (c *Consumer) Start(ctx context.Context) error {
 	if c.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 
 	client, err := pulsar.NewClient(c.config.ClientOptions)

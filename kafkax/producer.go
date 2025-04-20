@@ -48,7 +48,7 @@ func (p *Producer) MultiEnqueue(ctx context.Context, data ...[]byte) error {
 
 func (p *Producer) EnqueueMessages(ctx context.Context, messages ...kafka.Message) error {
 	if p.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 
 	return p.writer.WriteMessages(ctx, messages...)

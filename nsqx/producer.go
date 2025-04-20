@@ -33,14 +33,14 @@ func (p *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
 
 func (p *Producer) Enqueue(ctx context.Context, data []byte) error {
 	if p.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 	return p.producer.Publish(p.topic, data)
 }
 
 func (p *Producer) DeferredEnqueue(ctx context.Context, delay time.Duration, data []byte) error {
 	if p.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 	return p.producer.DeferredPublish(p.topic, delay, data)
 }
@@ -51,7 +51,7 @@ func (p *Producer) MultiEnqueue(ctx context.Context, data ...[]byte) error {
 	}
 
 	if p.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 	return p.producer.MultiPublish(p.topic, data)
 }

@@ -30,7 +30,7 @@ func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer
 
 func (c *Consumer) Start(ctx context.Context) error {
 	if c.inShutdown.Load() {
-		return ErrClosedQueue
+		return ErrQueueClosed
 	}
 
 	c.config.Reader.Topic = c.topic
