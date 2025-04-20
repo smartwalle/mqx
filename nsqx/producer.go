@@ -57,9 +57,10 @@ func (p *Producer) MultiEnqueue(ctx context.Context, data ...[]byte) error {
 }
 
 func (p *Producer) Close() error {
-	if !p.closed.CompareAndSwap(false, true) {
-		return nil
-	}
+	//if !p.closed.CompareAndSwap(false, true) {
+	//	return nil
+	//}
+	p.closed.Store(true)
 
 	if p.producer != nil {
 		p.producer.Stop()

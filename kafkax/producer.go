@@ -55,9 +55,10 @@ func (p *Producer) EnqueueMessages(ctx context.Context, messages ...kafka.Messag
 }
 
 func (p *Producer) Close() error {
-	if !p.closed.CompareAndSwap(false, true) {
-		return nil
-	}
+	//if !p.closed.CompareAndSwap(false, true) {
+	//	return nil
+	//}
+	p.closed.Store(true)
 
 	if p.writer != nil {
 		if err := p.writer.Close(); err != nil {

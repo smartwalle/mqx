@@ -65,9 +65,10 @@ func (c *Consumer) Start(ctx context.Context) error {
 }
 
 func (c *Consumer) Stop(ctx context.Context) error {
-	if !c.state.CompareAndSwap(kStateRunning, kStateFinished) {
-		return nil
-	}
+	//if !c.state.CompareAndSwap(kStateRunning, kStateFinished) {
+	//	return nil
+	//}
+	c.state.Store(kStateFinished)
 
 	if c.consumer != nil {
 		c.consumer.Stop()

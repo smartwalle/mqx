@@ -59,9 +59,10 @@ func (p *Producer) DeferredEnqueue(ctx context.Context, delay time.Duration, dat
 }
 
 func (p *Producer) Close() error {
-	if !p.closed.CompareAndSwap(false, true) {
-		return nil
-	}
+	//if !p.closed.CompareAndSwap(false, true) {
+	//	return nil
+	//}
+	p.closed.Store(true)
 
 	if p.producer != nil {
 		p.producer.Flush()
