@@ -7,9 +7,9 @@ import (
 )
 
 type Producer struct {
-	topic      string
-	writer     *kafka.Writer
-	inShutdown atomic.Bool
+	topic  string
+	writer *kafka.Writer
+	closed atomic.Bool
 }
 
 func NewProducer(topic string, config *Config) *Producer {
@@ -47,7 +47,7 @@ func (p *Producer) MultiEnqueue(ctx context.Context, data ...[]byte) error {
 }
 
 func (p *Producer) EnqueueMessages(ctx context.Context, messages ...kafka.Message) error {
-	if p.inShutdown.Load() {
+	if p.closed.Load() {
 		return ErrQueueClosed
 	}
 
@@ -55,7 +55,7 @@ func (p *Producer) EnqueueMessages(ctx context.Context, messages ...kafka.Messag
 }
 
 func (p *Producer) Close() error {
-	if !p.inShutdown.CompareAndSwap(false, true) {
+	if !p.closed.CompareAndSwap(false, true) {
 		return nil
 	}
 

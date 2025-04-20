@@ -11,12 +11,12 @@ type Message = kafka.Message
 type Handler func(ctx context.Context, message Message) bool
 
 type Consumer struct {
-	topic      string
-	group      string
-	config     *Config
-	handler    Handler
-	reader     *kafka.Reader
-	inShutdown atomic.Bool
+	topic   string
+	group   string
+	config  *Config
+	handler Handler
+	reader  *kafka.Reader
+	state   atomic.Int32
 }
 
 func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer {
@@ -29,8 +29,15 @@ func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer
 }
 
 func (c *Consumer) Start(ctx context.Context) error {
-	if c.inShutdown.Load() {
-		return ErrQueueClosed
+	if !c.state.CompareAndSwap(kStateIdle, kStateRunning) {
+		switch c.state.Load() {
+		case kStateRunning:
+			return ErrQueueRunning
+		case kStateFinished:
+			return ErrQueueClosed
+		default:
+			return ErrBadQueue
+		}
 	}
 
 	c.config.Reader.Topic = c.topic
@@ -54,7 +61,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 }
 
 func (c *Consumer) Stop(ctx context.Context) error {
-	if !c.inShutdown.CompareAndSwap(false, true) {
+	if !c.state.CompareAndSwap(kStateRunning, kStateFinished) {
 		return nil
 	}
 

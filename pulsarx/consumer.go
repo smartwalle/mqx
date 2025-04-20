@@ -8,8 +8,6 @@ import (
 
 type Message = pulsar.Message
 
-//pulsar.ProducerMessage
-
 type Handler func(ctx context.Context, message Message) bool
 
 type Consumer struct {
@@ -19,7 +17,7 @@ type Consumer struct {
 	handler          Handler
 	client           pulsar.Client
 	consumer         pulsar.Consumer
-	inShutdown       atomic.Bool
+	state            atomic.Int32
 }
 
 func NewConsumer(topic, subscriptionName string, config *Config, handler Handler) *Consumer {
@@ -32,8 +30,15 @@ func NewConsumer(topic, subscriptionName string, config *Config, handler Handler
 }
 
 func (c *Consumer) Start(ctx context.Context) error {
-	if c.inShutdown.Load() {
-		return ErrQueueClosed
+	if !c.state.CompareAndSwap(kStateIdle, kStateRunning) {
+		switch c.state.Load() {
+		case kStateRunning:
+			return ErrQueueRunning
+		case kStateFinished:
+			return ErrQueueClosed
+		default:
+			return ErrBadQueue
+		}
 	}
 
 	client, err := pulsar.NewClient(c.config.ClientOptions)
@@ -66,7 +71,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 }
 
 func (c *Consumer) Stop(ctx context.Context) error {
-	if !c.inShutdown.CompareAndSwap(false, true) {
+	if !c.state.CompareAndSwap(kStateRunning, kStateFinished) {
 		return nil
 	}
 

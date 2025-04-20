@@ -8,12 +8,11 @@ import (
 )
 
 type Producer struct {
-	closed     int32
-	topic      string
-	config     *Config
-	client     pulsar.Client
-	producer   pulsar.Producer
-	inShutdown atomic.Bool
+	topic    string
+	config   *Config
+	client   pulsar.Client
+	producer pulsar.Producer
+	closed   atomic.Bool
 }
 
 func NewProducer(topic string, config *Config) (*Producer, error) {
@@ -28,7 +27,6 @@ func NewProducer(topic string, config *Config) (*Producer, error) {
 	}
 
 	var p = &Producer{}
-	p.closed = 0
 	p.topic = topic
 	p.config = config
 	p.producer = producer
@@ -42,7 +40,7 @@ func (p *Producer) Enqueue(ctx context.Context, data []byte) error {
 }
 
 func (p *Producer) EnqueueMessage(ctx context.Context, message *pulsar.ProducerMessage) error {
-	if p.inShutdown.Load() {
+	if p.closed.Load() {
 		return ErrQueueClosed
 	}
 	_, err := p.producer.Send(ctx, message)
@@ -50,7 +48,7 @@ func (p *Producer) EnqueueMessage(ctx context.Context, message *pulsar.ProducerM
 }
 
 func (p *Producer) DeferredEnqueue(ctx context.Context, delay time.Duration, data []byte) error {
-	if p.inShutdown.Load() {
+	if p.closed.Load() {
 		return ErrQueueClosed
 	}
 
@@ -61,7 +59,7 @@ func (p *Producer) DeferredEnqueue(ctx context.Context, delay time.Duration, dat
 }
 
 func (p *Producer) Close() error {
-	if !atomic.CompareAndSwapInt32(&p.closed, 0, 1) {
+	if !p.closed.CompareAndSwap(false, true) {
 		return nil
 	}
 

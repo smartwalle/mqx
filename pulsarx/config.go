@@ -5,8 +5,16 @@ import (
 	"github.com/apache/pulsar-client-go/pulsar"
 )
 
+const (
+	kStateIdle     = 0
+	kStateRunning  = 1
+	kStateFinished = 2
+)
+
 var (
-	ErrQueueClosed = errors.New("queue closed")
+	ErrQueueRunning = errors.New("queue running")
+	ErrQueueClosed  = errors.New("queue closed")
+	ErrBadQueue     = errors.New("bad queue")
 )
 
 type Config struct {

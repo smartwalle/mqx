@@ -11,14 +11,14 @@ type Message = nsq.Message
 type Handler func(ctx context.Context, message *Message) error
 
 type Consumer struct {
-	topic      string
-	channel    string
-	config     *Config
-	handler    Handler
-	consumer   *nsq.Consumer
-	logger     Logger
-	logLevel   nsq.LogLevel
-	inShutdown atomic.Bool
+	topic    string
+	channel  string
+	config   *Config
+	handler  Handler
+	consumer *nsq.Consumer
+	logger   Logger
+	logLevel nsq.LogLevel
+	state    atomic.Int32
 }
 
 func NewConsumer(topic, channel string, config *Config, handler Handler) *Consumer {
@@ -36,8 +36,15 @@ func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
 }
 
 func (c *Consumer) Start(ctx context.Context) error {
-	if c.inShutdown.Load() {
-		return ErrQueueClosed
+	if !c.state.CompareAndSwap(kStateIdle, kStateRunning) {
+		switch c.state.Load() {
+		case kStateRunning:
+			return ErrQueueRunning
+		case kStateFinished:
+			return ErrQueueClosed
+		default:
+			return ErrBadQueue
+		}
 	}
 
 	consumer, err := nsq.NewConsumer(c.topic, c.channel, c.config.Config)
@@ -58,7 +65,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 }
 
 func (c *Consumer) Stop(ctx context.Context) error {
-	if !c.inShutdown.CompareAndSwap(false, true) {
+	if !c.state.CompareAndSwap(kStateRunning, kStateFinished) {
 		return nil
 	}
 

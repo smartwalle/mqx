@@ -8,10 +8,10 @@ import (
 )
 
 type Producer struct {
-	topic      string
-	config     *Config
-	producer   *nsq.Producer
-	inShutdown atomic.Bool
+	topic    string
+	config   *Config
+	producer *nsq.Producer
+	closed   atomic.Bool
 }
 
 func NewProducer(topic string, config *Config) (*Producer, error) {
@@ -32,14 +32,14 @@ func (p *Producer) SetLogger(l Logger, lv nsq.LogLevel) {
 }
 
 func (p *Producer) Enqueue(ctx context.Context, data []byte) error {
-	if p.inShutdown.Load() {
+	if p.closed.Load() {
 		return ErrQueueClosed
 	}
 	return p.producer.Publish(p.topic, data)
 }
 
 func (p *Producer) DeferredEnqueue(ctx context.Context, delay time.Duration, data []byte) error {
-	if p.inShutdown.Load() {
+	if p.closed.Load() {
 		return ErrQueueClosed
 	}
 	return p.producer.DeferredPublish(p.topic, delay, data)
@@ -50,14 +50,14 @@ func (p *Producer) MultiEnqueue(ctx context.Context, data ...[]byte) error {
 		return nil
 	}
 
-	if p.inShutdown.Load() {
+	if p.closed.Load() {
 		return ErrQueueClosed
 	}
 	return p.producer.MultiPublish(p.topic, data)
 }
 
 func (p *Producer) Close() error {
-	if !p.inShutdown.CompareAndSwap(false, true) {
+	if !p.closed.CompareAndSwap(false, true) {
 		return nil
 	}
 
