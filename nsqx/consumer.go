@@ -12,7 +12,7 @@ type Handler func(ctx context.Context, message *Message) error
 
 type Consumer struct {
 	topic      string
-	group      string
+	channel    string
 	config     *Config
 	handler    Handler
 	consumer   *nsq.Consumer
@@ -21,10 +21,10 @@ type Consumer struct {
 	inShutdown atomic.Bool
 }
 
-func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer {
+func NewConsumer(topic, channel string, config *Config, handler Handler) *Consumer {
 	var c = &Consumer{}
 	c.topic = topic
-	c.group = group
+	c.channel = channel
 	c.config = config
 	c.handler = handler
 	return c
@@ -40,7 +40,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 		return ErrClosedQueue
 	}
 
-	consumer, err := nsq.NewConsumer(c.topic, c.group, c.config.Config)
+	consumer, err := nsq.NewConsumer(c.topic, c.channel, c.config.Config)
 	if err != nil {
 		return err
 	}
