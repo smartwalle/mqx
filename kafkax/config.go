@@ -6,10 +6,12 @@ import (
 	"net"
 )
 
+type State int32
+
 const (
-	kStateIdle     = 0
-	kStateRunning  = 1
-	kStateFinished = 2
+	StateIdle     State = 0
+	StateRunning  State = 1
+	StateShutdown State = 2
 )
 
 var (

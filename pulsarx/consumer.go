@@ -30,11 +30,11 @@ func NewConsumer(topic, subscriptionName string, config *Config, handler Handler
 }
 
 func (c *Consumer) Start(ctx context.Context) error {
-	if !c.state.CompareAndSwap(kStateIdle, kStateRunning) {
-		switch c.state.Load() {
-		case kStateRunning:
+	if !c.state.CompareAndSwap(int32(StateIdle), int32(StateRunning)) {
+		switch State(c.state.Load()) {
+		case StateRunning:
 			return ErrQueueRunning
-		case kStateFinished:
+		case StateShutdown:
 			return ErrQueueClosed
 		default:
 			return ErrBadQueue
@@ -70,11 +70,14 @@ func (c *Consumer) Start(ctx context.Context) error {
 	}
 }
 
+func (c *Consumer) State() State {
+	return State(c.state.Load())
+}
+
 func (c *Consumer) Stop(ctx context.Context) error {
-	//if !c.state.CompareAndSwap(kStateRunning, kStateFinished) {
-	//	return nil
-	//}
-	c.state.Store(kStateFinished)
+	if !c.state.CompareAndSwap(int32(StateRunning), int32(StateShutdown)) {
+		return nil
+	}
 
 	if c.consumer != nil {
 		c.consumer.Close()
