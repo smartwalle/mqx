@@ -1,4 +1,4 @@
-module github.com/smartwalle/mx/kafkax
+module github.com/smartwalle/mqx/kafkax
 
 go 1.13
 

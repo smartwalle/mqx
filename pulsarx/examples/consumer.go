@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/smartwalle/mx/pulsarx"
+	"github.com/smartwalle/mqx/pulsarx"
 	"os"
 	"os/signal"
 	"syscall"

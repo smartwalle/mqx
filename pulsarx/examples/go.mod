@@ -1,8 +1,8 @@
-module github.com/smartwalle/mx/pulsar/examples
+module github.com/smartwalle/mqx/pulsar/examples
 
 go 1.21
 
-require github.com/smartwalle/mx/pulsarx v0.0.0
+require github.com/smartwalle/mqx/pulsarx v0.0.0
 
 require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -48,4 +48,4 @@ require (
 	google.golang.org/protobuf v1.33.0 // indirect
 )
 
-replace github.com/smartwalle/mx/pulsarx => ../
+replace github.com/smartwalle/mqx/pulsarx => ../

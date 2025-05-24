@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/smartwalle/mx/nsqx"
+	"github.com/smartwalle/mqx/nsqx"
 	"os"
 	"os/signal"
 	"syscall"

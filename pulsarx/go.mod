@@ -1,4 +1,4 @@
-module github.com/smartwalle/mx/pulsarx
+module github.com/smartwalle/mqx/pulsarx
 
 go 1.21
 

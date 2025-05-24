@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/smartwalle/mx/kafkax"
+	"github.com/smartwalle/mqx/kafkax"
 	"os"
 	"os/signal"
 	"syscall"
