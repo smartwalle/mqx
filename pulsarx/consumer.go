@@ -8,25 +8,28 @@ import (
 
 type Message = pulsar.Message
 
-type Handler func(ctx context.Context, message Message) bool
+type MessageHandler func(ctx context.Context, message Message) bool
 
 type Consumer struct {
 	topic            string
 	subscriptionName string
 	config           *Config
-	handler          Handler
+	handler          MessageHandler
 	client           pulsar.Client
 	consumer         pulsar.Consumer
 	state            atomic.Int32
 }
 
-func NewConsumer(topic, subscriptionName string, config *Config, handler Handler) *Consumer {
+func NewConsumer(topic, subscriptionName string, config *Config) *Consumer {
 	var c = &Consumer{}
 	c.topic = topic
 	c.subscriptionName = subscriptionName
 	c.config = config
-	c.handler = handler
 	return c
+}
+
+func (c *Consumer) OnMessage(handler MessageHandler) {
+	c.handler = handler
 }
 
 func (c *Consumer) Start(ctx context.Context) error {
@@ -39,6 +42,10 @@ func (c *Consumer) Start(ctx context.Context) error {
 		default:
 			return ErrBadQueue
 		}
+	}
+
+	if c.handler == nil {
+		return ErrHandlerNotFound
 	}
 
 	client, err := pulsar.NewClient(c.config.ClientOptions)

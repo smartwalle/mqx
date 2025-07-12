@@ -13,7 +13,8 @@ func main() {
 	var config = nsqx.NewConfig()
 	config.NSQAddr = "127.0.0.1:4150"
 	config.NSQLookupAddrs = []string{"127.0.0.1:4161"}
-	var consumer = nsqx.NewConsumer("topic-1", "channel-1", config, func(ctx context.Context, message *nsqx.Message) error {
+	var consumer = nsqx.NewConsumer("topic-1", "channel-1", config)
+	consumer.OnMessage(func(ctx context.Context, message *nsqx.Message) error {
 		fmt.Println(string(message.Body))
 		return nil
 	})

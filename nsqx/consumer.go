@@ -8,26 +8,29 @@ import (
 
 type Message = nsq.Message
 
-type Handler func(ctx context.Context, message *Message) error
+type MessageHandler func(ctx context.Context, message *Message) error
 
 type Consumer struct {
 	topic    string
 	channel  string
 	config   *Config
-	handler  Handler
+	handler  MessageHandler
 	consumer *nsq.Consumer
 	logger   Logger
 	logLevel nsq.LogLevel
 	state    atomic.Int32
 }
 
-func NewConsumer(topic, channel string, config *Config, handler Handler) *Consumer {
+func NewConsumer(topic, channel string, config *Config) *Consumer {
 	var c = &Consumer{}
 	c.topic = topic
 	c.channel = channel
 	c.config = config
-	c.handler = handler
 	return c
+}
+
+func (c *Consumer) OnMessage(handler MessageHandler) {
+	c.handler = handler
 }
 
 func (c *Consumer) SetLogger(l Logger, lv nsq.LogLevel) {
@@ -45,6 +48,10 @@ func (c *Consumer) Start(ctx context.Context) error {
 		default:
 			return ErrBadQueue
 		}
+	}
+
+	if c.handler == nil {
+		return ErrHandlerNotFound
 	}
 
 	consumer, err := nsq.NewConsumer(c.topic, c.channel, c.config.Config)

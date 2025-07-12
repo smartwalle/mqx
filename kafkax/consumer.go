@@ -8,24 +8,27 @@ import (
 
 type Message = kafka.Message
 
-type Handler func(ctx context.Context, message Message) bool
+type MessageHandler func(ctx context.Context, message Message) bool
 
 type Consumer struct {
 	topic   string
 	group   string
 	config  *Config
-	handler Handler
+	handler MessageHandler
 	reader  *kafka.Reader
 	state   atomic.Int32
 }
 
-func NewConsumer(topic, group string, config *Config, handler Handler) *Consumer {
+func NewConsumer(topic, group string, config *Config) *Consumer {
 	var c = &Consumer{}
 	c.topic = topic
 	c.group = group
 	c.config = config
-	c.handler = handler
 	return c
+}
+
+func (c *Consumer) OnMessage(handler MessageHandler) {
+	c.handler = handler
 }
 
 func (c *Consumer) Start(ctx context.Context) error {
@@ -38,6 +41,10 @@ func (c *Consumer) Start(ctx context.Context) error {
 		default:
 			return ErrBadQueue
 		}
+	}
+
+	if c.handler == nil {
+		return ErrHandlerNotFound
 	}
 
 	c.config.Reader.Topic = c.topic

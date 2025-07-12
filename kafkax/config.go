@@ -15,9 +15,10 @@ const (
 )
 
 var (
-	ErrQueueRunning = errors.New("queue running")
-	ErrQueueClosed  = errors.New("queue closed")
-	ErrBadQueue     = errors.New("bad queue")
+	ErrQueueRunning    = errors.New("queue running")
+	ErrQueueClosed     = errors.New("queue closed")
+	ErrBadQueue        = errors.New("bad queue")
+	ErrHandlerNotFound = errors.New("message handler not found")
 )
 
 type Config struct {

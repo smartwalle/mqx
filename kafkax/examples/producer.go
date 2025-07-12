@@ -11,7 +11,7 @@ import (
 
 func main() {
 	var config = kafkax.NewConfig()
-	config.Writer.Addr = kafkax.TCP("192.168.1.4:9092")
+	config.Writer.Addr = kafkax.TCP("192.168.2.64:9092")
 	config.Writer.Async = true
 	producer := kafkax.NewProducer("topic-1", config)
 

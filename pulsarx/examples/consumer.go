@@ -11,7 +11,8 @@ import (
 
 func main() {
 	var config = pulsarx.NewConfig()
-	var consumer = pulsarx.NewConsumer("topic-1", "channel-1", config, func(ctx context.Context, message pulsarx.Message) bool {
+	var consumer = pulsarx.NewConsumer("topic-1", "channel-1", config)
+	consumer.OnMessage(func(ctx context.Context, message pulsarx.Message) bool {
 		fmt.Println(message.Topic(), string(message.Payload()))
 		return true
 	})
